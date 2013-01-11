@@ -8,9 +8,9 @@ import org.slim3.controller.Navigation;
 import org.slim3.datastore.Datastore;
 
 import com.google.appengine.api.datastore.Key;
-import com.google.appengine.api.labs.taskqueue.Queue;
-import com.google.appengine.api.labs.taskqueue.QueueFactory;
-import com.google.appengine.api.labs.taskqueue.TaskOptions;
+import com.google.appengine.api.taskqueue.Queue;
+import com.google.appengine.api.taskqueue.QueueFactory;
+import com.google.appengine.api.taskqueue.TaskOptions;
 import com.jsonengine.meta.JEDocMeta;
 
 public class DeleteDocTypeTaskController extends Controller {
@@ -59,7 +59,7 @@ public class DeleteDocTypeTaskController extends Controller {
     public static void addDeleteAllTask(String docType) {
         final Queue que = QueueFactory.getQueue(QUENAME_JETASKS);
         final TaskOptions to =
-            TaskOptions.Builder.url("/task/deleteDocTypeTask").param(
+            TaskOptions.Builder.withUrl("/task/deleteDocTypeTask").param(
                 PARAM_DOCTYPE,
                 docType);
         que.add(to);
