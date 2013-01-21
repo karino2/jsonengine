@@ -1,3 +1,6 @@
 war/WEB-INF/classes/*
 src/com/jsonengine/meta/*
 src/com/livejournal/karino2/subtitle2/account.properties
+rollback.txt
+war/WEB-INF/lib/pom.xml
+war/WEB-INF/lib/readme-libs.txt
