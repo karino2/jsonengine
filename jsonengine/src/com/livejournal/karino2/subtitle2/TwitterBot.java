@@ -1,5 +1,6 @@
 package com.livejournal.karino2.subtitle2;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -10,6 +11,7 @@ import java.util.regex.Pattern;
 
 import twitter4j.ResponseList;
 import twitter4j.Status;
+import twitter4j.StatusUpdate;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.TwitterFactory;
@@ -34,6 +36,7 @@ import com.sun.tools.corba.se.idl.InvalidArgument;
 public class TwitterBot {
     SubtitleServer server = new SubtitleServer();
     
+    String accountPrefix = "@SubCourBot";
     String account = "bot1";
     Pattern textIdPat;
     Pattern replyHeaderPat;
@@ -58,6 +61,14 @@ public class TwitterBot {
     }
     
     private String srtId = null;
+    
+    public String getSrtUrl() throws JEAccessDeniedException {
+        JEDoc srt = getFirstSrt();
+        if(srt == null)
+            return null;
+        JEDocWrapper wrapper = new JEDocWrapper(srt);
+        return (String)wrapper.get("srtUrl");
+    }
     
     public String getSrtId() throws JEAccessDeniedException {
         if(srtId == null) {
@@ -191,6 +202,8 @@ public class TwitterBot {
                         twitter.retweetStatus(mention.getId());
                     }
                         
+                } else {
+                    handleNonReplyMention(service, mention);
                 }
             }
             
@@ -208,6 +221,71 @@ public class TwitterBot {
     }
     
     
+    private void handleNonReplyMention(DatastoreService service, Status mention) throws JEAccessDeniedException, TwitterException {
+        Transaction transaction = service.beginTransaction();
+        try {
+            if(mention.getText().startsWith(accountPrefix))
+                replyInfo(mention);
+            
+            storeToDB(service, transaction, mention);
+        } finally {
+            if (transaction.isActive()) {
+                transaction.rollback();
+            }
+        }
+        
+    }
+
+    public void replyInfo(Status mention) throws JEAccessDeniedException, TwitterException {
+        String msg = mention.getText();
+        if(msg.contains("動画") ||
+                msg.contains("URL") ||
+                msg.contains("url")) {
+            replyVideoUrl(mention);
+            return;            
+        }
+        if(msg.contains("stat") ||
+                msg.contains("統計")) {
+            replyStats(mention);
+            return;
+        }
+        replyHelp(mention);
+    }
+
+    private void replyHelp(Status mention) throws TwitterException {
+        reply(mention, "http://www47.atwiki.jp/karino2/pages/60.html");
+    }
+
+    private void replyStats(Status mention) throws TwitterException, JEAccessDeniedException {
+        List<Text> texts = server.getTexts(getSrtId()).getTexts();
+        int total = texts.size();
+        int comp = 0;
+        for(Text txt : texts) {
+            if(txt.hasTarget())
+                comp++;
+        }
+        
+        StringBuilder blder = new StringBuilder();
+        blder.append(comp + "/" + total + " (");        
+        blder.append((new DecimalFormat("0.##")).format(100*comp/total));
+        blder.append("%");
+        blder.append(") completed");         
+
+        reply(mention, blder.toString());
+    }
+
+    private void replyVideoUrl(Status mention) throws JEAccessDeniedException, TwitterException {
+        String url = getSrtUrl();
+        
+        reply(mention, url);
+    }
+
+    public void reply(Status mention, String msg) throws TwitterException {
+        StatusUpdate update = new StatusUpdate("@" + mention.getUser().getScreenName() + " " + msg);
+        update.inReplyToStatusId(mention.getId());
+        twitter.updateStatus(update);
+    }
+
     private boolean commitReply(DatastoreService service, Status mention) throws TwitterException, JEAccessDeniedException, JEConflictException {
         Status original = getOriginal(mention);
         int id = getTextId(original);
@@ -377,10 +455,10 @@ public class TwitterBot {
         if(range.inside(text.getIndex()))
             updateStatus(text.getFormatedOriginal());
         else
-            updateStatus(text.getOriginal());
+            updateStatus("_ " + text.getOriginal());
         
         if(text.hasTarget())
-            updateStatus(text.getTarget());
+            updateStatus("_ " + text.getTarget());
     }
     
     

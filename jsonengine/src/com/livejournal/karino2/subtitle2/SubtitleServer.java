@@ -62,9 +62,9 @@ public class SubtitleServer {
         return orderedTextsCache != null && orderedTextsCache.equalSrtId(srtId);
     }
     
-    public List<JEDoc> getRawTexts(String srtId) throws JEAccessDeniedException {
+    public TextList getTexts(String srtId) throws JEAccessDeniedException {
         if(isCacheValid(srtId))
-            return orderedTextsCache.getTexts();
+            return orderedTextsCache;
         
         QueryRequest qReq = new QueryRequest();
         qReq.setDocType("text");
@@ -74,7 +74,11 @@ public class SubtitleServer {
         sort(txts);
         
         orderedTextsCache = new TextList(srtId, txts);
-        return txts;        
+        return orderedTextsCache;
+    }
+    
+    public List<JEDoc> getRawTexts(String srtId) throws JEAccessDeniedException {
+        return getTexts(srtId).getRawTexts();
     }
 
     public void updateJEDoc(JEDoc jeDoc) throws JEConflictException {

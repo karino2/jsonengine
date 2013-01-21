@@ -20,7 +20,7 @@ public class JEDocWrapper {
         return jsonObj.getDocId();
     }
 
-    protected Object get(String name) {
+    public Object get(String name) {
         return jsonObj.getDocValues().get(name);
     }
     
