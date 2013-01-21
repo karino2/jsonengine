@@ -53,13 +53,27 @@ public class SubtitleServer {
         });
     }
     
+    TextList orderedTextsCache;
+    public void resetCache() {
+        orderedTextsCache = null;        
+    }
+    
+    private boolean isCacheValid(String srtId) {
+        return orderedTextsCache != null && orderedTextsCache.equalSrtId(srtId);
+    }
+    
     public List<JEDoc> getRawTexts(String srtId) throws JEAccessDeniedException {
+        if(isCacheValid(srtId))
+            return orderedTextsCache.getTexts();
+        
         QueryRequest qReq = new QueryRequest();
         qReq.setDocType("text");
         QueryFilter.addCondFilter(qReq, "srtId", "eq", srtId);
         
         List<JEDoc> txts = service.queryAsJEDocList(qReq);
         sort(txts);
+        
+        orderedTextsCache = new TextList(srtId, txts);
         return txts;        
     }
 

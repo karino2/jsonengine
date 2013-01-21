@@ -29,6 +29,7 @@ import com.google.appengine.api.datastore.Query.SortDirection;
 import com.jsonengine.common.JEAccessDeniedException;
 import com.jsonengine.common.JEConflictException;
 import com.jsonengine.model.JEDoc;
+import com.sun.tools.corba.se.idl.InvalidArgument;
 
 public class TwitterBot {
     SubtitleServer server = new SubtitleServer();
@@ -96,19 +97,44 @@ public class TwitterBot {
     }
 
     int areaIndex = -1;
-    public boolean bookArea() throws JEAccessDeniedException, JEConflictException {
+    public boolean bookAreaRandom() throws JEAccessDeniedException, JEConflictException {
         freeMyArea();
+        return bookArea();
+    }
+
+    public boolean bookArea() throws JEAccessDeniedException,
+            JEConflictException {
         AreaMap areaMap = getAreaMap();
         areaIndex = areaMap.findEmptyArea(-1, account);
-        if(areaIndex == -1)
-        {
-            log.debug("area is full");
-            return false;
+        while(areaIndex != -1) {
+          
+            if(isEmptyTextExist(areaMap, areaIndex)) {
+                areaMap.assignArea(areaIndex, account);
+                server.updateAreaMap(areaMap);
+                return true;
+            } else {
+                areaMap.doneArea(areaIndex);
+            }
+                        
+            areaIndex = areaMap.findEmptyArea(-1, account);
         }
         
-        areaMap.assignArea(areaIndex, account);
-        server.updateAreaMap(areaMap);
-        return true;
+        log.debug("area is full");
+        return false;
+            
+        
+    }
+
+    private boolean isEmptyTextExist(AreaMap map, int areaIndex2) throws JEAccessDeniedException {
+        List<JEDoc> texts = server.getRawTexts(getSrtId());
+        Range range = map.getRange(areaIndex2);
+        for(JEDoc doc : texts) {
+            Text txt = new Text(doc);
+            if(range.inside(txt.getIndex()) && !txt.hasTarget()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public void doneArea(int areaIndex) throws JEAccessDeniedException, JEConflictException {
@@ -268,22 +294,45 @@ public class TwitterBot {
     private void updateStatus(String body) throws TwitterException {
         twitter.updateStatus(body);
     }
+    
+    private void tweetFirstArea() throws JEAccessDeniedException, JEConflictException, TwitterException {
+        if(!bookAreaRandom()) 
+            return;
+        
+        List<Text> texts = getAreaTextsWithHeaderFooter();
+        Range range = getAreaRange();
+        for(Text text : texts) {
+            tweetText(range, text);
+            if(range.inside(text.getIndex()))
+                return;
+        }
+        
+    }
+    
     public void tweets() {
         try {
-            if(!bookArea()) 
+            Date dt = new Date();
+            int hour = dt.getHours();
+            if(hour == 0) {
+                tweetFirstArea();
+                return;
+            }
+            if(hour >= 21)
+                return;
+
+            if(!bookArea())
                 return;
             
             List<Text> texts = getAreaTextsWithHeaderFooter();
             Range range = getAreaRange();
-            for(Text text : texts) {
-                if(range.inside(text.getIndex()))
-                    updateStatus(text.getFormatedOriginal());
-                else
-                    updateStatus(text.getOriginal());
-                
-                if(text.hasTarget())
-                    updateStatus(text.getTarget());
+            if(hour == 20) {
+                tweetFooter(range, texts);
+            } else {
+                Text txt = getTarget(areaIndex, hour, texts);
+                if(txt != null)
+                    tweetText(range, txt);
             }
+            
             // bot1.freeMyArea();
             // bot1.bookArea();
             // bot1.doneArea(12);
@@ -295,6 +344,43 @@ public class TwitterBot {
          } catch (TwitterException e) {
              log.debug("twitter exception");
         }
+    }
+
+    private Text getTarget(int areaIndex2, int hour, List<Text> texts) {
+        // hour=0, localIndex = 1
+        // hour=19, localIndex = 20
+        // hour must be 2<= hour <= 19 for this method.
+        // areaIndex start from 1.
+        if(hour < 2 || hour > 19) {
+            throw new RuntimeException("getTarget called not inside valid hour range: " + hour);
+        }
+        
+        int textIndex = areaIndex + hour;
+        for(Text txt: texts) {
+            if(txt.getIndex() == textIndex)
+                return txt;
+        }
+        
+        // outside.
+        return null;
+    }
+
+    private void tweetFooter(Range range, List<Text> texts) throws TwitterException {
+        for(Text txt : texts) {
+            if(range.getEnd() < txt.getIndex()) {
+                tweetText(range, txt);
+            }
+        }
+    }
+
+    public void tweetText(Range range, Text text) throws TwitterException {
+        if(range.inside(text.getIndex()))
+            updateStatus(text.getFormatedOriginal());
+        else
+            updateStatus(text.getOriginal());
+        
+        if(text.hasTarget())
+            updateStatus(text.getTarget());
     }
     
     

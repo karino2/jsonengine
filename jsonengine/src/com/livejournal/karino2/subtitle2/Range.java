@@ -8,4 +8,5 @@ class Range {
         this.end = end;
     }
     boolean inside(int idx) { return begin <= idx && idx <= end; }
+    public int getEnd() { return end; }
 }
