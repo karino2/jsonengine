@@ -2,6 +2,8 @@ package com.livejournal.karino2.subtitle2;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -54,7 +56,7 @@ public class TwitterBot {
         List<JEDoc> srtList = server.getRawSrts();
         if(srtList.isEmpty())
         {
-            log.debug("srt is empty");
+            log.info("srt is empty");
             return null;
         }
         return srtList.get(0);        
@@ -130,7 +132,7 @@ public class TwitterBot {
             areaIndex = areaMap.findEmptyArea(-1, account);
         }
         
-        log.debug("area is full");
+        log.info("area is full");
         return false;
             
         
@@ -194,43 +196,57 @@ public class TwitterBot {
     // for checkMentions
     
     public void checkMentions() {
+        // log.info("check mention");
         DatastoreService service = DatastoreServiceFactory.getDatastoreService();
         try {
             ResponseList<Status> mentions = twitter.getMentionsTimeline();
             List<Status> notYetRepliedMentions = filterAlreadyReplied(service, mentions);
             
+            // log.info("mentions size: " + mentions.size());
+            // log.info("not yet reply num: " + notYetRepliedMentions.size());
             for(Status mention : notYetRepliedMentions) {
                 if(isReply(mention)) {
+                   //  log.info("is reply");
                     if(commitReply(service, mention)) {
+                       //  log.info("commit success");
                         twitter.retweetStatus(mention.getId());
                     }
                         
                 } else {
+                    // log.info("handle no reply");
                     handleNonReplyMention(service, mention);
                 }
             }
             
             
         } catch (TwitterException e) {
-            log.debug("twitter exception");
+            log.info("twitter exception" + e.getMessage());
         } catch (JEAccessDeniedException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            log.info("access denied exception");
         } catch (JEConflictException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            log.info("conflict exception");
         }
 
     }
     
     
-    private void handleNonReplyMention(DatastoreService service, Status mention) throws JEAccessDeniedException, TwitterException {
+    private void handleNonReplyMention(DatastoreService service, Status mention) throws JEAccessDeniedException {
         Transaction transaction = service.beginTransaction();
         try {
-            if(mention.getText().startsWith(accountPrefix))
-                replyInfo(mention);
-            
-            storeToDB(service, transaction, mention);
+            try
+            {
+                if(mention.getText().startsWith(accountPrefix)){
+                    // log.info("call reply info");
+                    replyInfo(mention);
+                }
+            } catch (TwitterException e) {
+                log.info("twitter exception: " + e.getMessage());
+            } finally {
+                // if twitter exception occur, optimal behaviour is store it as handled.
+                // log.info("store to DB");
+                storeToDB(service, transaction, mention);
+                transaction.commit();
+            }
         } finally {
             if (transaction.isActive()) {
                 transaction.rollback();
@@ -367,6 +383,13 @@ public class TwitterBot {
             }
             
         }
+        Collections.sort(filteredVals, new Comparator<Status>() {
+
+            public int compare(Status lhs, Status rhs) {
+                return lhs.getCreatedAt().compareTo(rhs.getCreatedAt());
+            }
+        });
+        
         return filteredVals;
     }
     
@@ -419,11 +442,11 @@ public class TwitterBot {
             // bot1.doneArea(12);
             // bot1.freeArea(12);
          } catch (JEAccessDeniedException e) {
-             log.debug("access denied");
+             log.info("access denied");
          } catch (JEConflictException e) {
-             log.debug("conflict");
+             log.info("conflict");
          } catch (TwitterException e) {
-             log.debug("twitter exception");
+             log.info("twitter exception");
         }
     }
 
