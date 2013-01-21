@@ -161,10 +161,13 @@ public class TwitterBot {
         server.updateAreaMap(areaMap);        
     }
     
-    public void submitTarget(int textId, String target) throws JEAccessDeniedException, JEConflictException {
+    public boolean submitTarget(int textId, String target) throws JEAccessDeniedException, JEConflictException {
         Text text = getTextById(getSrtId(), textId);
+        if(text == null)
+            return false;
         text.putTarget(target);
         server.updateText(text);
+        return true;
     }
     
     private Text getTextById(String srtId2, int textId) throws JEAccessDeniedException {
