@@ -218,11 +218,7 @@ public class TwitterBot {
         return -1;
     }
     
-    HashMap<Long, Status> writtenStatus = new HashMap<Long, Status>();
     private Status getOriginal(Status mention) throws TwitterException {
-        if(writtenStatus.containsKey(mention.getInReplyToStatusId())) {
-            return writtenStatus.get(mention.getInReplyToStatusId());
-        }
         // may be not mine? dont care.
         return twitter.showStatus(mention.getInReplyToStatusId());
     }
@@ -270,8 +266,7 @@ public class TwitterBot {
     
     // tweets
     private void updateStatus(String body) throws TwitterException {
-        Status stats = twitter.updateStatus(body);
-        writtenStatus.put(stats.getId(), stats);
+        twitter.updateStatus(body);
     }
     public void tweets() {
         try {
