@@ -1,9 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <cronentries>
   <cron>
-	<url>/cron/tweetsrt</url>
+	<url>/cron/tweetsrt?cmd=tweets</url>
 	<description>Tweets contents of srts every </description>
 	<schedule>every day 08:00</schedule>
+	<!-- 
+	<schedule>every 2 minutes</schedule>
+	 -->
+	<!-- 
+	<schedule>every 6 hours</schedule>
+	 -->
+  </cron>
+  <cron>
+	<url>/cron/tweetsrt?cmd=check</url>
+	<description>Check mention and handle every </description>
+	<schedule>every 5 minutes</schedule>
 	<!-- 
 	<schedule>every 2 minutes</schedule>
 	 -->
