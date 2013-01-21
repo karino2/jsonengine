@@ -33,6 +33,20 @@ public class QueryService {
      */
     public String query(QueryRequest queryReq) throws JEAccessDeniedException {
 
+        final List<JEDoc> resultJeDocs = queryAsJEDocList(queryReq);
+
+        // extract docValues from the result JEDocs
+        Collection<Object> results = new LinkedList<Object>();
+        for (JEDoc jeDoc : resultJeDocs) {
+            results.add(jeDoc.getDocValues());
+        }
+
+        // return the results in JSON
+        return JSON.encode(results);
+    }
+
+    public List<JEDoc> queryAsJEDocList(QueryRequest queryReq)
+            throws JEAccessDeniedException {
         // check if accessible
         if (!queryReq.isAccessibleByQuery()) {
             throw new JEAccessDeniedException();
@@ -58,15 +72,6 @@ public class QueryService {
         }
 
         // execute query
-        final List<JEDoc> resultJeDocs = mq.asList();
-
-        // extract docValues from the result JEDocs
-        Collection<Object> results = new LinkedList<Object>();
-        for (JEDoc jeDoc : resultJeDocs) {
-            results.add(jeDoc.getDocValues());
-        }
-
-        // return the results in JSON
-        return JSON.encode(results);
+        return mq.asList();
     }
 }

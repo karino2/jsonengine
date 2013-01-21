@@ -1,2 +1,3 @@
 war/WEB-INF/classes/*
 src/com/jsonengine/meta/*
+src/com/livejournal/karino2/subtitle2/account.properties
