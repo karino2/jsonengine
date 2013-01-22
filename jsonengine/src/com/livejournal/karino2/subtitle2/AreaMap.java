@@ -148,7 +148,6 @@ public class AreaMap extends JEDocWrapper {
     private Range getAreaRangeWithHeaderFooter(int areaIndex) {
         int beginIdx = firstTextIndex(areaIndex)-2;
         int endIdx = lastTextIndex(areaIndex)+2;
-        endIdx +=2;
         return new Range(Math.max(1, beginIdx), Math.min(endIdx, getTextNum()));
     }
     
