@@ -1,5 +1,6 @@
 package com.livejournal.karino2.subtitle2;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import twitter4j.internal.logging.Logger;
@@ -137,6 +138,15 @@ public class Subtitle {
         text.putTarget(target);
         server.updateText(text);
         return true;
+    }
+    
+    public List<Text> getTextsBySrtId(String srtId2) throws JEAccessDeniedException {
+        List<JEDoc> orderdDocs = server.getRawTexts(srtId2);
+        ArrayList<Text> res = new ArrayList<Text>();
+        for(JEDoc doc : orderdDocs) {
+            res.add(new Text(doc));
+        }
+        return res;
     }
     
     private Text getTextById(String srtId2, int textId) throws JEAccessDeniedException {

@@ -106,9 +106,19 @@
       <url-pattern>/cron/tweetsrt</url-pattern>
     </servlet-mapping>
     
+    <servlet>
+        <servlet-name>download</servlet-name>
+        <servlet-class>com.livejournal.karino2.subtitle2.DownloadServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+      <servlet-name>download</servlet-name>
+      <url-pattern>/admin/download</url-pattern>
+    </servlet-mapping>
+    
     <security-constraint>
         <web-resource-collection>
             <url-pattern>/cron/*</url-pattern>
+            <url-pattern>/admin/*</url-pattern>
         </web-resource-collection>
         <auth-constraint>
             <role-name>admin</role-name>
