@@ -417,6 +417,7 @@ public class TwitterBot {
         try {
             Date dt = new Date();
             int hour = dt.getHours();
+            log.info("hour=" + hour);
             if(hour == 0) {
                 tweetFirstArea();
                 return;
@@ -424,8 +425,10 @@ public class TwitterBot {
             if(hour >= 21)
                 return;
 
-            if(!bookArea())
+            if(!bookArea()) {
+                log.info("book area fail");
                 return;
+            }
             
             List<Text> texts = getAreaTextsWithHeaderFooter();
             Range range = getAreaRange();
@@ -433,8 +436,11 @@ public class TwitterBot {
                 tweetFooter(range, texts);
             } else {
                 Text txt = getTarget(areaIndex, hour, texts);
-                if(txt != null)
+                if(txt != null) {
                     tweetText(range, txt);
+                } else {
+                    log.info("get target fail");
+                }
             }
             
             // bot1.freeMyArea();
@@ -450,21 +456,22 @@ public class TwitterBot {
         }
     }
 
-    private Text getTarget(int areaIndex2, int hour, List<Text> texts) {
+    private Text getTarget(int areaIndex2, int hour, List<Text> texts) throws JEAccessDeniedException {
         // hour=0, localIndex = 1
         // hour=19, localIndex = 20
-        // hour must be 2<= hour <= 19 for this method.
+        // hour must be 1<= hour <= 19 for this method.
         // areaIndex start from 1.
-        if(hour < 2 || hour > 19) {
+        if(hour < 1 || hour > 19) {
             throw new RuntimeException("getTarget called not inside valid hour range: " + hour);
         }
         
-        int textIndex = areaIndex + hour;
+        int textIndex = getAreaMap().localIndexToTextIndex(areaIndex2, hour+1);
         for(Text txt: texts) {
             if(txt.getIndex() == textIndex)
                 return txt;
         }
         
+        log.info("outside: text index=" + textIndex + " areaIndex=" + areaIndex2 + " hour=" + hour + ", first=" + texts.get(0).getIndex() + ", last=" + texts.get(texts.size()-1).getIndex());
         // outside.
         return null;
     }

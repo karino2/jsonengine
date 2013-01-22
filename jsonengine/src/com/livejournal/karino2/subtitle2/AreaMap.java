@@ -163,6 +163,11 @@ public class AreaMap extends JEDocWrapper {
         return res;
     }
     
+    // local index start from 1.
+    public int localIndexToTextIndex(int areaIndex, int localIndex) {
+        return firstTextIndex(areaIndex)-1+localIndex;
+    }
+    
     private int lastTextIndex(int areaIndex) {
         int endIdx = areaIndex*TEXTS_PER_AREA;
         return Math.min(endIdx, getTextNum());
