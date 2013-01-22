@@ -37,31 +37,20 @@ public class TweetSrtServlet implements Servlet {
         twitter  = TwitterBot.createTwitterInstance();
     }
  
-    
-    private void tweets() {
-        TwitterBot bot1 = new TwitterBot(twitter);
-        bot1.tweets();        
-    }
-    
-    public void checkMentions() {
-        TwitterBot bot1 = new TwitterBot(twitter);
-        bot1.checkMentions();
-        
-    }
-
-
-
-
-
 
 
     public void service(ServletRequest req, ServletResponse resp)
             throws ServletException, IOException {
         HttpServletRequest httpReq = (HttpServletRequest) req;
-        if(httpReq.getQueryString().contains("tweets")) {            
-            tweets();            
+        
+        TwitterBot bot1 = new TwitterBot(twitter);
+
+        if(httpReq.getQueryString().contains("tweets")) {     
+            bot1.tweets();
+        }else  if (httpReq.getQueryString().contains("area")){
+            bot1.tweetWholeArea();
         }else {
-            checkMentions();
+            bot1.checkMentions();
         }
                 
         resp.setContentType("text/plain");

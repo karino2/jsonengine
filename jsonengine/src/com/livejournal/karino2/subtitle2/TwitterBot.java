@@ -413,6 +413,31 @@ public class TwitterBot {
         
     }
     
+    public void tweetWholeArea() {
+        try {
+            if(!bookArea()) {
+                log.info("book area fail");
+                return;
+            }
+            List<Text> texts = getAreaTextsWithHeaderFooter();
+
+            Range range = getAreaRange();
+            for(Text txt: texts) {
+                try {
+                    tweetText(range, txt);
+                }catch(TwitterException e) {
+                    log.info("twitter exception");
+                    
+                }
+            }
+        } catch (JEAccessDeniedException e) {
+            log.info("access denied");
+        } catch (JEConflictException e) {
+            log.info("conflict");
+       }
+
+    }
+    
     public void tweets() {
         try {
             Date dt = new Date();
