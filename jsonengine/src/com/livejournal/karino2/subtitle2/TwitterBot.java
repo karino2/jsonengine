@@ -36,161 +36,23 @@ import com.jsonengine.model.JEDoc;
 import com.sun.tools.corba.se.idl.InvalidArgument;
 
 public class TwitterBot {
-    SubtitleServer server = new SubtitleServer();
     
     String accountPrefix = "@SubCourBot";
     String account = "bot1";
     Pattern textIdPat;
     Pattern replyHeaderPat;
     
+    private static final Logger log = Logger.getLogger(TwitterBot.class);
+
     Twitter twitter;
+    Subtitle subtitle;
     public TwitterBot(Twitter twit) {
         twitter = twit;
         textIdPat = Pattern.compile("^([0-9][0-9]*):");
         replyHeaderPat = Pattern.compile("^@[0-9a-zA-Z]* (.*)$");
+        subtitle = new Subtitle(account);
     }
     
-    private static final Logger log = Logger.getLogger(TwitterBot.class);
-    
-    public JEDoc getFirstSrt() throws JEAccessDeniedException {
-        List<JEDoc> srtList = server.getRawSrts();
-        if(srtList.isEmpty())
-        {
-            log.info("srt is empty");
-            return null;
-        }
-        return srtList.get(0);        
-    }
-    
-    private String srtId = null;
-    
-    public String getSrtUrl() throws JEAccessDeniedException {
-        JEDoc srt = getFirstSrt();
-        if(srt == null)
-            return null;
-        JEDocWrapper wrapper = new JEDocWrapper(srt);
-        return (String)wrapper.get("srtUrl");
-    }
-    
-    public String getSrtId() throws JEAccessDeniedException {
-        if(srtId == null) {
-            JEDoc srt = getFirstSrt();
-            if(srt == null)
-                return null;            
-            srtId = srt.getDocId();
-        }
-        return srtId;
-    }
-    
-    public AreaMap getFirstAreaMap() throws JEAccessDeniedException {
-        String srtId = getSrtId();
-        if(srtId == null)
-            return null;
-        return server.getAreaMap(srtId);
-    }
-    
-    AreaMap areaMap = null;
-    public AreaMap getAreaMap() throws JEAccessDeniedException {
-        if(areaMap == null) {
-            areaMap = getFirstAreaMap();
-        }
-        return areaMap;
-    }
-    
-    public void freeMyArea() throws JEConflictException, JEAccessDeniedException {
-        AreaMap areaMap = getAreaMap();
-        
-        int myArea = areaMap.findMyArea(account, -1);
-        if(myArea == -1) {
-            return;
-        }
-        
-        areaMap.freeArea(myArea);
-        server.updateAreaMap(areaMap);
-    }
-
-    int areaIndex = -1;
-    public boolean bookAreaRandom() throws JEAccessDeniedException, JEConflictException {
-        freeMyArea();
-        return bookArea();
-    }
-
-    public boolean bookArea() throws JEAccessDeniedException,
-            JEConflictException {
-        AreaMap areaMap = getAreaMap();
-        areaIndex = areaMap.findEmptyArea(-1, account);
-        while(areaIndex != -1) {
-          
-            if(isEmptyTextExist(areaMap, areaIndex)) {
-                areaMap.assignArea(areaIndex, account);
-                server.updateAreaMap(areaMap);
-                return true;
-            } else {
-                areaMap.doneArea(areaIndex);
-            }
-                        
-            areaIndex = areaMap.findEmptyArea(-1, account);
-        }
-        
-        log.info("area is full");
-        return false;
-            
-        
-    }
-
-    private boolean isEmptyTextExist(AreaMap map, int areaIndex2) throws JEAccessDeniedException {
-        List<JEDoc> texts = server.getRawTexts(getSrtId());
-        Range range = map.getRange(areaIndex2);
-        for(JEDoc doc : texts) {
-            Text txt = new Text(doc);
-            if(range.inside(txt.getIndex()) && !txt.hasTarget()) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public void doneArea(int areaIndex) throws JEAccessDeniedException, JEConflictException {
-        AreaMap areaMap = getAreaMap();
-        areaMap.doneArea(areaIndex);
-        server.updateAreaMap(areaMap);        
-    }
-
-    // set to empty, but for normal case, it is for free booked area.
-    public void freeArea(int areaIndex) throws JEAccessDeniedException, JEConflictException {
-        AreaMap areaMap = getAreaMap();
-        areaMap.freeArea(areaIndex);
-        server.updateAreaMap(areaMap);        
-    }
-    
-    public boolean submitTarget(int textId, String target) throws JEAccessDeniedException, JEConflictException {
-        Text text = getTextById(getSrtId(), textId);
-        if(text == null)
-            return false;
-        text.putTarget(target);
-        server.updateText(text);
-        return true;
-    }
-    
-    private Text getTextById(String srtId2, int textId) throws JEAccessDeniedException {
-        List<JEDoc> orderTexts = server.getRawTexts(srtId2);
-        for(JEDoc jeDoc : orderTexts) {
-            Text txt = new Text(jeDoc);
-            if(txt.getIndex() == textId)
-                return txt;
-        }
-        return null;
-    }
-
-    public Range getAreaRange() throws JEAccessDeniedException {
-        return getAreaMap().getRange(areaIndex);
-    }
-
-    public List<Text> getAreaTextsWithHeaderFooter() throws JEAccessDeniedException {
-        List<JEDoc> orderdTexts = server.getRawTexts(getSrtId());
-        AreaMap areaMap = getAreaMap();
-        return areaMap.getAreaTextWithHeaderFooter(orderdTexts, areaIndex);
-    }
     
 
     // for checkMentions
@@ -276,7 +138,7 @@ public class TwitterBot {
     }
 
     private void replyStats(Status mention) throws TwitterException, JEAccessDeniedException {
-        List<Text> texts = server.getTexts(getSrtId()).getTexts();
+        List<Text> texts = subtitle.getCurrentTexts();
         int total = texts.size();
         int comp = 0;
         for(Text txt : texts) {
@@ -294,7 +156,7 @@ public class TwitterBot {
     }
 
     private void replyVideoUrl(Status mention) throws JEAccessDeniedException, TwitterException {
-        String url = getSrtUrl();
+        String url = subtitle.getSrtUrl();
         
         reply(mention, url);
     }
@@ -314,7 +176,7 @@ public class TwitterBot {
         Transaction transaction = service.beginTransaction();
         try {
             String message = chopMention(mention.getText());
-            submitTarget(id, message);
+            subtitle.submitTarget(id, message);
             storeToDB(service, transaction, mention);
             
             transaction.commit();
@@ -356,7 +218,7 @@ public class TwitterBot {
         Entity post = new Entity("Post");
         post.setProperty("postUser", mention.getUser().getScreenName());
         post.setProperty("postText", mention.getText());
-        post.setProperty("srtId", getSrtId());
+        post.setProperty("srtId", subtitle.getSrtId());
         post.setProperty("postDate", new Date());
         service.put(transaction, post);
     }
@@ -370,7 +232,7 @@ public class TwitterBot {
                 CompositeFilterOperator.and(
                     FilterOperator.EQUAL.of("postUser", reply.getUser().getScreenName()),
                     FilterOperator.EQUAL.of("postText", reply.getText()),
-                    FilterOperator.EQUAL.of("srtId", getSrtId())
+                    FilterOperator.EQUAL.of("srtId", subtitle.getSrtId())
                     ));
             query.addSort("postDate", SortDirection.DESCENDING);
             
@@ -400,11 +262,11 @@ public class TwitterBot {
     }
     
     private void tweetFirstArea() throws JEAccessDeniedException, JEConflictException, TwitterException {
-        if(!bookAreaRandom()) 
+        if(!subtitle.bookAreaRandom()) 
             return;
         
-        List<Text> texts = getAreaTextsWithHeaderFooter();
-        Range range = getAreaRange();
+        List<Text> texts = subtitle.getAreaTextsWithHeaderFooter();
+        Range range = subtitle.getAreaRange();
         for(Text text : texts) {
             tweetText(range, text);
             if(range.inside(text.getIndex()))
@@ -415,13 +277,13 @@ public class TwitterBot {
     
     public void tweetWholeArea() {
         try {
-            if(!bookArea()) {
+            if(!subtitle.bookArea()) {
                 log.info("book area fail");
                 return;
             }
-            List<Text> texts = getAreaTextsWithHeaderFooter();
+            List<Text> texts = subtitle.getAreaTextsWithHeaderFooter();
 
-            Range range = getAreaRange();
+            Range range = subtitle.getAreaRange();
             for(Text txt: texts) {
                 try {
                     tweetText(range, txt);
@@ -450,17 +312,17 @@ public class TwitterBot {
             if(hour >= 21)
                 return;
 
-            if(!bookArea()) {
+            if(!subtitle.bookArea()) {
                 log.info("book area fail");
                 return;
             }
             
-            List<Text> texts = getAreaTextsWithHeaderFooter();
-            Range range = getAreaRange();
+            List<Text> texts = subtitle.getAreaTextsWithHeaderFooter();
+            Range range = subtitle.getAreaRange();
             if(hour == 20) {
                 tweetFooter(range, texts);
             } else {
-                Text txt = getTarget(areaIndex, hour, texts);
+                Text txt = subtitle.getTarget(hour, texts);
                 if(txt != null) {
                     tweetText(range, txt);
                 } else {
@@ -481,25 +343,6 @@ public class TwitterBot {
         }
     }
 
-    private Text getTarget(int areaIndex2, int hour, List<Text> texts) throws JEAccessDeniedException {
-        // hour=0, localIndex = 1
-        // hour=19, localIndex = 20
-        // hour must be 1<= hour <= 19 for this method.
-        // areaIndex start from 1.
-        if(hour < 1 || hour > 19) {
-            throw new RuntimeException("getTarget called not inside valid hour range: " + hour);
-        }
-        
-        int textIndex = getAreaMap().localIndexToTextIndex(areaIndex2, hour+1);
-        for(Text txt: texts) {
-            if(txt.getIndex() == textIndex)
-                return txt;
-        }
-        
-        log.info("outside: text index=" + textIndex + " areaIndex=" + areaIndex2 + " hour=" + hour + ", first=" + texts.get(0).getIndex() + ", last=" + texts.get(texts.size()-1).getIndex());
-        // outside.
-        return null;
-    }
 
     private void tweetFooter(Range range, List<Text> texts) throws TwitterException {
         for(Text txt : texts) {
