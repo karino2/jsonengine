@@ -115,6 +115,15 @@
       <url-pattern>/admin/download</url-pattern>
     </servlet-mapping>
     
+    <servlet>
+        <servlet-name>delete</servlet-name>
+        <servlet-class>com.livejournal.karino2.subtitle2.DeleteServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+      <servlet-name>delete</servlet-name>
+      <url-pattern>/admin/delete</url-pattern>
+    </servlet-mapping>
+    
     <security-constraint>
         <web-resource-collection>
             <url-pattern>/cron/*</url-pattern>

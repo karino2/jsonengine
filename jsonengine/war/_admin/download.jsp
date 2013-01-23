@@ -60,8 +60,10 @@ function getSrts(){
 function btnStartEnable(isEnable) {
 	if(isEnable) {
 			$("#btnSrtChoose").removeAttr("disabled");
+			$("#btnDelete").removeAttr("disabled");
 	} else {
 			$("#btnSrtChoose").attr("disabled", true);
+			$("#btnDelete").attr("disabled", true);
 	}
 }
 
@@ -70,6 +72,11 @@ function onGenerateLink() {
 	var span =$("#linkSpan");
 	span.empty();
 	span.append('<a href="/admin/download?srtId='+ srtId+ '">download srt</a>');
+}
+
+function onDeleteSrt() {
+	var srtId = $('#srtList option:selected')[0].value;
+	ajaxGet('/admin/delete?srtId='+srtId, function() {alert("success!"); });
 }
 
 getSrts();
@@ -84,6 +91,8 @@ getSrts();
     <input id="btnSrtChoose" class="btn" type="button" value="Generate Download" disabled onclick="onGenerateLink()">
 	<span id="linkSpan"></span>
   </div>
+<hr>
+<input id="btnDelete" class="btn" type="button" value="削除！！！" disabled onclick="onDeleteSrt()">
 </body>
 
 </html>

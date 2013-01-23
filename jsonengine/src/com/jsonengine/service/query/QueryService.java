@@ -47,6 +47,14 @@ public class QueryService {
 
     public List<JEDoc> queryAsJEDocList(QueryRequest queryReq)
             throws JEAccessDeniedException {
+        ModelQuery<JEDoc> mq = queryAsModelQuery(queryReq);
+
+        // execute query
+        return mq.asList();
+    }
+
+    public ModelQuery<JEDoc> queryAsModelQuery(QueryRequest queryReq)
+            throws JEAccessDeniedException {
         // check if accessible
         if (!queryReq.isAccessibleByQuery()) {
             throw new JEAccessDeniedException();
@@ -70,8 +78,6 @@ public class QueryService {
                 mq.filterInMemory(jeDocMeta.createdBy.equal(queryReq
                     .getRequestedBy()));
         }
-
-        // execute query
-        return mq.asList();
+        return mq;
     }
 }

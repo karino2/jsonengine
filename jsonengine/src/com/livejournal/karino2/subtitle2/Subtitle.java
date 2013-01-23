@@ -1,10 +1,14 @@
 package com.livejournal.karino2.subtitle2;
 
 import java.util.ArrayList;
+import java.util.ConcurrentModificationException;
 import java.util.List;
+
+import org.slim3.datastore.Datastore;
 
 import twitter4j.internal.logging.Logger;
 
+import com.google.appengine.api.datastore.Transaction;
 import com.jsonengine.common.JEAccessDeniedException;
 import com.jsonengine.common.JEConflictException;
 import com.jsonengine.model.JEDoc;
@@ -191,5 +195,28 @@ public class Subtitle {
         log.info("outside: text index=" + textIndex + " areaIndex=" + areaIndex + " hour=" + hour + ", first=" + texts.get(0).getIndex() + ", last=" + texts.get(texts.size()-1).getIndex());
         // outside.
         return null;
+    }
+
+    public void deleteWholeSrt(String srtId2) throws JEConflictException, JEAccessDeniedException {
+        final Transaction tx = Datastore.beginTransaction();
+        try {
+            deleteAreaMap(tx, srtId2);
+            server.deleteTextsBySrtId(tx, srtId2);
+            deleteSrtById(tx, srtId2);
+            Datastore.commit(tx);
+        } catch(ConcurrentModificationException e) {
+            throw new JEConflictException(e);
+        }            
+    }
+
+
+    private void deleteSrtById(Transaction tx, String srtId2) throws JEAccessDeniedException {
+        JEDoc doc = server.getRawSrtById(srtId2);
+        Datastore.delete(tx, doc.getKey());
+    }
+
+    private void deleteAreaMap(Transaction tx, String srtId2) throws JEAccessDeniedException, JEConflictException {
+        AreaMap map = server.getAreaMap(srtId2);
+        Datastore.delete(tx, map.getJEDoc().getKey());        
     }
 }
