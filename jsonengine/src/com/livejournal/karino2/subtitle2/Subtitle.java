@@ -4,13 +4,15 @@ import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.List;
 
-import org.slim3.datastore.Datastore;
-
 import twitter4j.internal.logging.Logger;
 
+import com.google.appengine.api.datastore.DatastoreService;
+import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Transaction;
+import com.google.appengine.api.datastore.TransactionOptions;
 import com.jsonengine.common.JEAccessDeniedException;
 import com.jsonengine.common.JEConflictException;
+import com.jsonengine.controller.task.DeleteSrtTaskController;
 import com.jsonengine.model.JEDoc;
 
 public class Subtitle {
@@ -198,25 +200,27 @@ public class Subtitle {
     }
 
     public void deleteWholeSrt(String srtId2) throws JEConflictException, JEAccessDeniedException {
-        final Transaction tx = Datastore.beginTransaction();
+        DeleteSrtTaskController.addDeleteSrtTask(srtId2);
+        DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+        final Transaction tx = datastore.beginTransaction(TransactionOptions.Builder.withXG(true));
         try {
-            deleteAreaMap(tx, srtId2);
-            server.deleteTextsBySrtId(tx, srtId2);
-            deleteSrtById(tx, srtId2);
-            Datastore.commit(tx);
+            deleteAreaMap(datastore, tx, srtId2);
+            deleteSrtById(datastore, tx, srtId2);
+            tx.commit();
         } catch(ConcurrentModificationException e) {
             throw new JEConflictException(e);
-        }            
+        }
+        
     }
 
 
-    private void deleteSrtById(Transaction tx, String srtId2) throws JEAccessDeniedException {
+    private void deleteSrtById(DatastoreService datastore, Transaction tx, String srtId2) throws JEAccessDeniedException {
         JEDoc doc = server.getRawSrtById(srtId2);
-        Datastore.delete(tx, doc.getKey());
+        datastore.delete(tx, doc.getKey());
     }
 
-    private void deleteAreaMap(Transaction tx, String srtId2) throws JEAccessDeniedException, JEConflictException {
+    private void deleteAreaMap(DatastoreService datastore, Transaction tx, String srtId2) throws JEAccessDeniedException, JEConflictException {
         AreaMap map = server.getAreaMap(srtId2);
-        Datastore.delete(tx, map.getJEDoc().getKey());        
+        datastore.delete(tx, map.getJEDoc().getKey());        
     }
 }

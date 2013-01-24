@@ -10,7 +10,6 @@ import net.arnx.jsonic.JSON;
 
 import org.slim3.datastore.Datastore;
 
-
 import com.google.appengine.api.datastore.Transaction;
 import com.jsonengine.common.JEAccessDeniedException;
 import com.jsonengine.common.JEConflictException;
@@ -71,10 +70,6 @@ public class SubtitleServer {
         return orderedTextsCache != null && orderedTextsCache.equalSrtId(srtId);
     }
     
-    public void deleteTextsBySrtId(Transaction tx, String srtId) throws JEAccessDeniedException {
-        QueryRequest qReq = getTextBySrtIdQuery(srtId);
-        Datastore.delete(service.queryAsModelQuery(qReq).asKeyList());        
-    }
     
     public TextList getTexts(String srtId) throws JEAccessDeniedException {
         if(isCacheValid(srtId))

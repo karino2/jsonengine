@@ -27,7 +27,7 @@ public class DeleteServlet extends HttpServlet {
             throws ServletException, IOException {
 
         String srtId = req.getParameter("srtId");
-        
+
         Subtitle subtitle = new Subtitle("bot1");
         try {
             subtitle.deleteWholeSrt(srtId);

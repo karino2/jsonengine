@@ -31,11 +31,14 @@ function ajaxPost(url, param, onSuccess, postType){
    }
 }
 
-function ajaxGet(url, onSuccess){
+function ajaxGet(url, onSuccess, onError){
 	if(isLocal()) {
 		dummyGet(url, onSuccess);
 	} else {
-		$.get(url, onSuccess);
+		var res =$.get(url, onSuccess);
+		if(onError) {
+			res.error(onError);
+		}
 	}
 }
 
@@ -76,7 +79,8 @@ function onGenerateLink() {
 
 function onDeleteSrt() {
 	var srtId = $('#srtList option:selected')[0].value;
-	ajaxGet('/admin/delete?srtId='+srtId, function() {alert("success!"); });
+	btnStartEnable(false);
+	ajaxGet('/admin/delete?srtId='+srtId, function() {btnStartEnable(true); alert("success!"); }, function() {btnStartEnable(true); alert("error!"); });
 }
 
 getSrts();
