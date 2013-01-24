@@ -27,7 +27,7 @@ public class SubtitleServer {
     QueryService service = new QueryService();
     
     public List<JEDoc> getRawSrts() throws JEAccessDeniedException {
-        QueryRequest qReq = new QueryRequest();
+        QueryRequest qReq = createQueryRequest();
         qReq.setDocType("srt");
         QueryFilter.addSortFilter(qReq, "_createdAt","asc");
         
@@ -35,14 +35,23 @@ public class SubtitleServer {
     }
     
     public JEDoc getRawAreaMap(String srtId) throws JEAccessDeniedException {
-        QueryRequest qReq = new QueryRequest();
+        QueryRequest qReq = createQueryRequest();
+        
         qReq.setDocType("areaMap");
         QueryFilter.addCondFilter(qReq, "srtId", "eq", srtId);
+        
         
         List<JEDoc> results = service.queryAsJEDocList(qReq);
         if(results.isEmpty())
             throw new IndexOutOfBoundsException("no such areaMap of srtId");
         return results.get(0);
+    }
+
+    public QueryRequest createQueryRequest() {
+        QueryRequest qReq = new QueryRequest();
+        qReq.setRequestedBy(JEUserUtils.userEmail());
+        qReq.setAdmin(JEUserUtils.isAdmin());
+        return qReq;
     }
     
     public AreaMap getAreaMap(String srtId) throws JEAccessDeniedException {
@@ -85,7 +94,7 @@ public class SubtitleServer {
     }
 
     public QueryRequest getTextBySrtIdQuery(String srtId) {
-        QueryRequest qReq = new QueryRequest();
+        QueryRequest qReq = createQueryRequest();
         qReq.setDocType("text");
         QueryFilter.addCondFilter(qReq, "srtId", "eq", srtId);
         return qReq;
