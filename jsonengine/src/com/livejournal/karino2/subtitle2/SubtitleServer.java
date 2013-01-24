@@ -30,6 +30,7 @@ public class SubtitleServer {
     public List<JEDoc> getRawSrts() throws JEAccessDeniedException {
         QueryRequest qReq = new QueryRequest();
         qReq.setDocType("srt");
+        QueryFilter.addSortFilter(qReq, "_createdAt","asc");
         
         return service.queryAsJEDocList(qReq);
     }
