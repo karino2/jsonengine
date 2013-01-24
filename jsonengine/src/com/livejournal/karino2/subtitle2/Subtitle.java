@@ -200,13 +200,13 @@ public class Subtitle {
     }
 
     public void deleteWholeSrt(String srtId2) throws JEConflictException, JEAccessDeniedException {
-        DeleteSrtTaskController.addDeleteSrtTask(srtId2);
         DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
         final Transaction tx = datastore.beginTransaction(TransactionOptions.Builder.withXG(true));
         try {
             deleteAreaMap(datastore, tx, srtId2);
             deleteSrtById(datastore, tx, srtId2);
             tx.commit();
+            DeleteSrtTaskController.addDeleteSrtTask(srtId2);
         } catch(ConcurrentModificationException e) {
             throw new JEConflictException(e);
         }
