@@ -22,7 +22,6 @@ public class DeleteServlet extends HttpServlet {
     private static final Logger log = Logger.getLogger(DeleteServlet.class);
 
     
-    // TODO: web.xml, add UI jsp.
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {

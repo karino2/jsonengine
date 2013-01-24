@@ -6,7 +6,7 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<title>Srtのダウンロード及び削除</title>
+<title>srtのアップロード</title>
 <%
     UserService userService = UserServiceFactory.getUserService();
     User user = userService.getCurrentUser();
@@ -47,39 +47,7 @@ function ajaxGeneral(param) {
 	}
 }
 
-function getSrts(){
- ajaxGet("/_je/srt", function (result) {
-	var sel = $('#srtList');
-	for(var i = 0; i <result.length; i++){
-		sel.append($('<option>').attr({value: result[i]._docId}).text(result[i].srtTitle));
-	}
-	btnStartEnable(true);
- });
-}
 
-function btnStartEnable(isEnable) {
-	if(isEnable) {
-			$("#btnSrtChoose").removeAttr("disabled");
-			$("#btnDelete").removeAttr("disabled");
-	} else {
-			$("#btnSrtChoose").attr("disabled", true);
-			$("#btnDelete").attr("disabled", true);
-	}
-}
-
-function onGenerateLink() {
-	var srtId = $('#srtList option:selected')[0].value;
-	var span =$("#linkSpan");
-	span.empty();
-	span.append('<a href="/admin/download?srtId='+ srtId+ '">download srt</a>');
-}
-
-function onDeleteSrt() {
-	var srtId = $('#srtList option:selected')[0].value;
-	ajaxGet('/admin/delete?srtId='+srtId, function() {alert("success!"); });
-}
-
-getSrts();
 
 </script>
 </head>
@@ -87,12 +55,14 @@ getSrts();
 <body>
 <h1>Subtitles</h1>
   <div class="input-append">
-    <select class="span5" id="srtList"></select>
-    <input id="btnSrtChoose" class="btn" type="button" value="Generate Download" disabled onclick="onGenerateLink()">
-	<span id="linkSpan"></span>
+    <form method="post" action="/admin/upload">
+       <div>title: <input type="text" name="title"><br>
+            url: <input type="text" name="url">
+       </div>
+       <div><textarea name="content" rows="40" cols="100"></textarea></div>
+       <div><input type="submit" value="ポスト!"></div>
+    </form>
   </div>
-<hr>
-<input id="btnDelete" class="btn" type="button" value="削除！！！" disabled onclick="onDeleteSrt()">
 </body>
 
 </html>

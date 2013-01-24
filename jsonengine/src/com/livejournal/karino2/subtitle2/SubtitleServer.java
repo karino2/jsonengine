@@ -4,6 +4,9 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.ConcurrentModificationException;
 import java.util.List;
+import java.util.Map;
+
+import net.arnx.jsonic.JSON;
 
 import org.slim3.datastore.Datastore;
 
@@ -11,7 +14,12 @@ import org.slim3.datastore.Datastore;
 import com.google.appengine.api.datastore.Transaction;
 import com.jsonengine.common.JEAccessDeniedException;
 import com.jsonengine.common.JEConflictException;
+import com.jsonengine.common.JENotFoundException;
+import com.jsonengine.common.JEUserUtils;
+import com.jsonengine.common.JEUtils;
 import com.jsonengine.model.JEDoc;
+import com.jsonengine.service.crud.CRUDRequest;
+import com.jsonengine.service.crud.CRUDService;
 import com.jsonengine.service.query.QueryFilter;
 import com.jsonengine.service.query.QueryRequest;
 import com.jsonengine.service.query.QueryService;
@@ -100,6 +108,16 @@ public class SubtitleServer {
             throw new JEConflictException(e);
         }
         
+    }
+    
+    public JEDoc put(String docType, Map<String, Object> jsonMap) throws JEConflictException, JEAccessDeniedException, JENotFoundException {
+        CRUDRequest jeReq = new CRUDRequest(JSON.encode(jsonMap));
+        jeReq.setDocType(docType);
+        jeReq.setRequestedAt((new JEUtils()).getGlobalTimestamp());
+        jeReq.setRequestedBy(JEUserUtils.userEmail());
+        jeReq.setAdmin(JEUserUtils.isAdmin());
+        
+        return (new CRUDService()).putInternal(jeReq, false);
     }
     
     public void updateAreaMap(AreaMap areaMap) throws JEConflictException {

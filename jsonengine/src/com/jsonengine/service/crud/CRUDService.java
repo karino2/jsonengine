@@ -175,6 +175,15 @@ public class CRUDService {
     public String put(CRUDRequest jeReq, boolean isUpdateOnly)
             throws JEConflictException, JEAccessDeniedException, JENotFoundException {
 
+        JEDoc jeDoc = putInternal(jeReq, isUpdateOnly);
+
+        // return the saved JSON document
+        return JSON.encode(jeDoc.getDocValues());
+    }
+
+    public JEDoc putInternal(CRUDRequest jeReq, boolean isUpdateOnly)
+            throws JEConflictException, JEAccessDeniedException,
+            JENotFoundException {
         // try to find an existing JEDoc for the docId
         final Transaction tx = Datastore.beginTransaction();
         JEDoc jeDoc = null;
@@ -221,8 +230,6 @@ public class CRUDService {
         } catch (ConcurrentModificationException e) {
             throw new JEConflictException(e);
         }
-
-        // return the saved JSON document
-        return JSON.encode(jeDoc.getDocValues());
+        return jeDoc;
     }
 }

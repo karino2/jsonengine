@@ -124,6 +124,15 @@
       <url-pattern>/admin/delete</url-pattern>
     </servlet-mapping>
     
+    <servlet>
+        <servlet-name>upload</servlet-name>
+        <servlet-class>com.livejournal.karino2.subtitle2.UploadServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+      <servlet-name>upload</servlet-name>
+      <url-pattern>/admin/upload</url-pattern>
+    </servlet-mapping>
+    
     <security-constraint>
         <web-resource-collection>
             <url-pattern>/cron/*</url-pattern>
