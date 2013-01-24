@@ -409,4 +409,32 @@ public class TwitterBot {
         return factory.getInstance();
     }
 
+
+
+    public void tweetOneText(int textId) {
+        try {
+            if(!subtitle.bookArea()) {
+                log.info("book area fail");
+                return;
+            }
+            List<Text> texts = subtitle.getAreaTextsWithHeaderFooter();
+
+            Range range = subtitle.getAreaRange();
+            for(Text txt: texts) {
+                try {
+                    if(txt.getIndex() == textId)
+                        tweetText(range, txt);
+                }catch(TwitterException e) {
+                    log.info("twitter exception");
+                    
+                }
+            }        
+
+        } catch (JEAccessDeniedException e) {
+            log.info("access denied");
+        } catch (JEConflictException e) {
+            log.info("conflict");
+       }
+    }
+
 }

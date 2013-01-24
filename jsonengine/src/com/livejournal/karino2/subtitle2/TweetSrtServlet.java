@@ -45,10 +45,15 @@ public class TweetSrtServlet implements Servlet {
         
         TwitterBot bot1 = new TwitterBot(twitter);
 
-        if(httpReq.getQueryString().contains("tweets")) {     
+        String cmd = httpReq.getParameter("cmd");
+        if(cmd.contains("tweets")) {     
             bot1.tweets();
-        }else  if (httpReq.getQueryString().contains("area")){
+        }else  if (cmd.contains("area")){
             bot1.tweetWholeArea();
+        }else if (cmd.contains("text")) {
+            // /cron/tweetsrt?cmd=text&textId=3
+            int textId = Integer.parseInt(httpReq.getParameter("textId"));
+            bot1.tweetOneText(textId);
         }else {
             bot1.checkMentions();
         }
