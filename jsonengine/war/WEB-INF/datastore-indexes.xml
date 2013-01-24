@@ -6,4 +6,10 @@
         <property name="srtId" direction="asc"/>
         <property name="postDate" direction="desc"/>
     </datastore-index>
+    <datastore-index kind="HandledPost" ancestor="false" source="manual">
+        <property name="postText" direction="asc"/>
+        <property name="postUser" direction="asc"/>
+        <property name="botName" direction="asc"/>
+        <property name="postDate" direction="desc"/>
+    </datastore-index>
 </datastore-indexes>

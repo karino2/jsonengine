@@ -215,10 +215,10 @@ public class TwitterBot {
 
     private void storeToDB(DatastoreService service, Transaction transaction,
             Status mention) throws JEAccessDeniedException {
-        Entity post = new Entity("Post");
+        Entity post = new Entity("HandledPost");
         post.setProperty("postUser", mention.getUser().getScreenName());
         post.setProperty("postText", mention.getText());
-        post.setProperty("srtId", subtitle.getSrtId());
+        post.setProperty("botName", account);
         post.setProperty("postDate", new Date());
         service.put(transaction, post);
     }
@@ -227,20 +227,9 @@ public class TwitterBot {
     private List<Status> filterAlreadyReplied(DatastoreService service, ResponseList<Status> mentions) throws JEAccessDeniedException {
         ArrayList<Status> filteredVals = new ArrayList<Status>();
         for(Status reply : mentions) {
-            Query query = new Query("Post");
-            query.setFilter(
-                CompositeFilterOperator.and(
-                    FilterOperator.EQUAL.of("postUser", reply.getUser().getScreenName()),
-                    FilterOperator.EQUAL.of("postText", reply.getText()),
-                    FilterOperator.EQUAL.of("srtId", subtitle.getSrtId())
-                    ));
-            query.addSort("postDate", SortDirection.DESCENDING);
-            
-            PreparedQuery pq = service.prepare(query);
-            FetchOptions limit = FetchOptions.Builder.withOffset(0).limit(1);
-            List<Entity> results = pq.asList(limit);
+            boolean isHandled = isAlreadyHandled(service, reply);
     
-            if(results.isEmpty()) {
+            if(!isHandled) {
                 filteredVals.add(reply);
             }
             
@@ -253,6 +242,45 @@ public class TwitterBot {
         });
         
         return filteredVals;
+    }
+
+
+
+    public boolean isAlreadyHandled(DatastoreService service, Status reply)
+            throws JEAccessDeniedException {
+        Query query2 = new Query("HandledPost");
+        query2.setFilter(
+            CompositeFilterOperator.and(
+                FilterOperator.EQUAL.of("postUser", reply.getUser().getScreenName()),
+                FilterOperator.EQUAL.of("postText", reply.getText()),
+                FilterOperator.EQUAL.of("botName", account)
+                ));
+        query2.addSort("postDate", SortDirection.DESCENDING);
+        if(isMatch(service, query2))
+            return true;
+        
+        // transition code. we'll remove later.
+        
+        Query query = new Query("Post");
+        query.setFilter(
+            CompositeFilterOperator.and(
+                FilterOperator.EQUAL.of("postUser", reply.getUser().getScreenName()),
+                FilterOperator.EQUAL.of("postText", reply.getText()),
+                FilterOperator.EQUAL.of("srtId", subtitle.getSrtId())
+                ));
+        query.addSort("postDate", SortDirection.DESCENDING);
+        
+        return isMatch(service, query);
+    }
+
+
+
+    public boolean isMatch(DatastoreService service, Query query) {
+        PreparedQuery pq = service.prepare(query);
+        FetchOptions limit = FetchOptions.Builder.withOffset(0).limit(1);
+        List<Entity> results = pq.asList(limit);
+        
+        return !results.isEmpty();
     }
     
     
