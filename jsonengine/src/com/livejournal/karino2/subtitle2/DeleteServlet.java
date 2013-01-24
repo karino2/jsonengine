@@ -11,6 +11,7 @@ import twitter4j.internal.logging.Logger;
 
 import com.jsonengine.common.JEAccessDeniedException;
 import com.jsonengine.common.JEConflictException;
+import com.jsonengine.controller.task.DeleteSrtTaskController;
 
 public class DeleteServlet extends HttpServlet {
 
@@ -27,10 +28,15 @@ public class DeleteServlet extends HttpServlet {
             throws ServletException, IOException {
 
         String srtId = req.getParameter("srtId");
+        boolean textOnly = !req.getParameter("textOnly").equals("");
 
         Subtitle subtitle = new Subtitle("bot1");
         try {
-            subtitle.deleteWholeSrt(srtId);
+            if(textOnly) {
+                DeleteSrtTaskController.addDeleteSrtTask(srtId);
+            } else {
+                subtitle.deleteWholeSrt(srtId);
+            }
         } catch (JEConflictException e) {
             log.info("jeconflict exception");
         } catch (JEAccessDeniedException e) {
