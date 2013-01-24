@@ -1,3 +1,3 @@
 . mysync.sh
 . myreplace.sh
-. mydeploy.sh
+. myupdate.sh
