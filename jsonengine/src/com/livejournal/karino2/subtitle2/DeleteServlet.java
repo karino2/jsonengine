@@ -28,7 +28,10 @@ public class DeleteServlet extends HttpServlet {
             throws ServletException, IOException {
 
         String srtId = req.getParameter("srtId");
-        boolean textOnly = !req.getParameter("textOnly").equals("");
+        boolean textOnly = false;
+        if(req.getParameterMap().containsKey("textOnly")) {
+            textOnly = req.getParameter("textOnly").equals("true");
+        }
 
         Subtitle subtitle = new Subtitle("bot1");
         try {
