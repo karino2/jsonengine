@@ -51,9 +51,6 @@ public class TwitterBot {
     }
     
     
-
-    // for checkMentions
-    
     public void checkMentions() {
         // log.info("check mention");
         DatastoreService service = DatastoreServiceFactory.getDatastoreService();
@@ -212,12 +209,11 @@ public class TwitterBot {
 
     private void storeToDB(DatastoreService service, Transaction transaction,
             Status mention) throws JEAccessDeniedException {
-        Entity post = new Entity("HandledPost");
-        post.setProperty("postUser", mention.getUser().getScreenName());
-        post.setProperty("postText", mention.getText());
-        post.setProperty("botName", account);
-        post.setProperty("postDate", new Date());
-        service.put(transaction, post);
+        Entity entMention = new Entity("HandledMention");
+        entMention.setProperty("tweetId", mention.getId());
+        entMention.setProperty("botName", account);
+        entMention.setProperty("postDate", new Date());
+        service.put(transaction, entMention);
     }
     
     
@@ -245,6 +241,19 @@ public class TwitterBot {
 
     public boolean isAlreadyHandled(DatastoreService service, Status reply)
             throws JEAccessDeniedException {
+        Query query = new Query("HandledMention");
+        query.setFilter(
+            CompositeFilterOperator.and(
+                FilterOperator.EQUAL.of("tweetId", reply.getId()),
+                FilterOperator.EQUAL.of("botName", account)
+                ));
+        query.addSort("postDate", SortDirection.DESCENDING);
+        if(isMatch(service, query))
+            return true;
+
+        
+        
+        // transition code. we'll remove later.
         Query query2 = new Query("HandledPost");
         query2.setFilter(
             CompositeFilterOperator.and(
@@ -253,21 +262,7 @@ public class TwitterBot {
                 FilterOperator.EQUAL.of("botName", account)
                 ));
         query2.addSort("postDate", SortDirection.DESCENDING);
-        if(isMatch(service, query2))
-            return true;
-        
-        // transition code. we'll remove later.
-        
-        Query query = new Query("Post");
-        query.setFilter(
-            CompositeFilterOperator.and(
-                FilterOperator.EQUAL.of("postUser", reply.getUser().getScreenName()),
-                FilterOperator.EQUAL.of("postText", reply.getText()),
-                FilterOperator.EQUAL.of("srtId", subtitle.getSrtId())
-                ));
-        query.addSort("postDate", SortDirection.DESCENDING);
-        
-        return isMatch(service, query);
+        return isMatch(service, query2);        
     }
 
 
