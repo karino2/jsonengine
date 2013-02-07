@@ -61,54 +61,51 @@ public class TwitterBot {
             // log.info("mentions size: " + mentions.size());
             // log.info("not yet reply num: " + notYetRepliedMentions.size());
             for(Status mention : notYetRepliedMentions) {
-                if(isReply(mention)) {
-                   //  log.info("is reply");
-                    if(commitReply(service, mention)) {
-                       //  log.info("commit success");
-                        twitter.retweetStatus(mention.getId());
+                try {
+                    if(isReply(mention)) {
+                       //  log.info("is reply");
+                            if(commitReply(service, mention)) {
+                               //  log.info("commit success");
+                                twitter.retweetStatus(mention.getId());
+                            }
+                            
+                    } else {
+                        // log.info("handle no reply");
+                        handleNonReplyMention(service, mention);
                     }
-                        
-                } else {
-                    // log.info("handle no reply");
-                    handleNonReplyMention(service, mention);
+                } catch (TwitterException e) {
+                    log.info("twitter exception: " + e.getMessage());
+                } catch (JEAccessDeniedException e) {
+                    log.info("JEAccessDenied exception: " + e.getMessage());
+                } catch (JEConflictException e) {
+                    log.info("JEConflict exception: " + e.getMessage());
+                }
+                finally {
+                    storeToDB(service, mention);
                 }
             }
-            
-            
-        } catch (TwitterException e) {
-            log.info("twitter exception" + e.getMessage());
-        } catch (JEAccessDeniedException e) {
-            log.info("access denied exception");
-        } catch (JEConflictException e) {
-            log.info("conflict exception");
+        } catch (TwitterException e1) {
+            log.info("twitter exception: " + e1.getMessage());
+        } catch (JEAccessDeniedException e1) {
+            log.info("JEAccessDenied exception: " + e1.getMessage());
         }
 
     }
     
+    private boolean isDirectMention(Status mention) {
+        return mention.getText().startsWith(accountPrefix);
+    }
     
     private void handleNonReplyMention(DatastoreService service, Status mention) throws JEAccessDeniedException {
-        Transaction transaction = service.beginTransaction();
-        try {
-            try
-            {
-                if(mention.getText().startsWith(accountPrefix)){
-                    // log.info("call reply info");
-                    replyInfo(mention);
-                }
-            } catch (TwitterException e) {
-                log.info("twitter exception: " + e.getMessage());
-            } finally {
-                // if twitter exception occur, optimal behaviour is store it as handled.
-                // log.info("store to DB");
-                storeToDB(service, transaction, mention);
-                transaction.commit();
+        try
+        {
+            if(isDirectMention(mention)){
+                // log.info("call reply info");
+                replyInfo(mention);
             }
-        } finally {
-            if (transaction.isActive()) {
-                transaction.rollback();
-            }
+        } catch (TwitterException e) {
+            log.info("twitter exception: " + e.getMessage());
         }
-        
     }
 
     public void replyInfo(Status mention) throws JEAccessDeniedException, TwitterException {
@@ -171,7 +168,6 @@ public class TwitterBot {
         try {
             String message = chopMention(mention.getText());
             subtitle.submitTarget(id, message);
-            storeToDB(service, transaction, mention);
             
             transaction.commit();
         } finally {
@@ -206,16 +202,15 @@ public class TwitterBot {
         return mention.getInReplyToStatusId() != -1L;
     }
 
-
-    private void storeToDB(DatastoreService service, Transaction transaction,
-            Status mention) throws JEAccessDeniedException {
+    private void storeToDB(DatastoreService service, Status mention) {
+        Transaction transaction = service.beginTransaction();
         Entity entMention = new Entity("HandledMention");
         entMention.setProperty("tweetId", mention.getId());
         entMention.setProperty("botName", account);
         entMention.setProperty("postDate", new Date());
         service.put(transaction, entMention);
-    }
-    
+        transaction.commit();
+    }    
     
     private List<Status> filterAlreadyReplied(DatastoreService service, ResponseList<Status> mentions) throws JEAccessDeniedException {
         ArrayList<Status> filteredVals = new ArrayList<Status>();
