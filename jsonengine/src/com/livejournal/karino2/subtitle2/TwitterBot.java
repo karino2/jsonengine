@@ -92,8 +92,10 @@ public class TwitterBot {
 
     }
     
-    private boolean isDirectMention(Status mention) {
-        return mention.getText().startsWith(accountPrefix);
+    private boolean isDirectMention(Status mention) {        
+        return mention.getText().startsWith(accountPrefix) ||
+                mention.getText().startsWith("." + accountPrefix) ||
+                mention.getText().startsWith(". " + accountPrefix);
     }
     
     private void handleNonReplyMention(DatastoreService service, Status mention) throws JEAccessDeniedException {
