@@ -7,6 +7,8 @@ import java.util.Random;
 
 
 
+import com.google.appengine.labs.repackaged.com.google.common.base.Predicate;
+import com.google.appengine.labs.repackaged.com.google.common.collect.Collections2;
 import com.jsonengine.model.JEDoc;
 
 public class AreaMap extends JEDocWrapper {
@@ -80,6 +82,10 @@ public class AreaMap extends JEDocWrapper {
         }
         return -1;
     }
+    
+    public static List<AreaMap> filter(List<AreaMap> areaList, Predicate<AreaMap> predict){
+        return new ArrayList<AreaMap>(Collections2.filter(areaList, predict));
+    }
 
     private List<Integer> collectEmptyAreas(String account) {
         List<Integer> res = new ArrayList<Integer>();
@@ -89,18 +95,37 @@ public class AreaMap extends JEDocWrapper {
         }
         return res;
     }
-
-    private boolean isEmpty(int areaIndex, String account) {
-        if(areaIndex < 1 ||
-                areaIndex > getAreaNum())
+    
+    private boolean isAssigned(int areaIndex) {
+        if(isNotValidRange(areaIndex))
+            return false;
+        if(STATUS_ASSIGNED == getStatus(areaIndex)) {
+            return !isOldEnough(areaIndex);
+        }
+        return false;
+    }
+    
+    private boolean isEmpty(int areaIndex) {
+        if(isNotValidRange(areaIndex))
             return false;
         if(STATUS_EMPTY == getStatus(areaIndex))
             return true;
         if(STATUS_DONE == getStatus(areaIndex))
             return false;
-        if(isMyArea(account, areaIndex))
-            return true;
         return isOldEnough(areaIndex);
+    }
+
+    private boolean isEmpty(int areaIndex, String account) {
+        if(isEmpty(areaIndex))
+            return true;
+        if(isNotValidRange(areaIndex))
+            return false;
+        return isMyArea(account, areaIndex);
+    }
+
+    public boolean isNotValidRange(int areaIndex) {
+        return areaIndex < 1 ||
+                areaIndex > getAreaNum();
     }
 
     private boolean isOldEnough(int areaIndex) {
@@ -123,6 +148,10 @@ public class AreaMap extends JEDocWrapper {
         if(array.get(1) == null)
             return "";
         return (String)array.get(1);
+    }
+    
+    public String getSrtId() {
+        return (String)get("srtId");
     }
 
     private int getStatus(int areaIndex) {
@@ -175,6 +204,32 @@ public class AreaMap extends JEDocWrapper {
     private int firstTextIndex(int areaIndex) {
         int beginIdx = 1+ (areaIndex-1)*TEXTS_PER_AREA;
         return beginIdx;
+    }
+
+    public boolean isWildWest() {
+        for(int i = 1; i <= getAreaNum(); i++) {
+            if(isAssigned(i))
+                return false;
+        }
+        return hasEmpty();
+    }
+    
+    public long getLatestUpdateTime() {
+        long now = getNowTick();
+        long minTick = Long.MAX_VALUE;
+        for(int i = 1; i <= getAreaNum(); i++) {
+            long tick = getUpdateTick(i);
+            minTick = Math.min(minTick, now-tick);
+        }
+        return minTick;
+    }
+
+    public boolean hasEmpty() {
+        for(int i = 1; i <= getAreaNum(); i++) {
+            if(isEmpty(i))
+                return true;
+        }
+        return false;
     }
     
 }

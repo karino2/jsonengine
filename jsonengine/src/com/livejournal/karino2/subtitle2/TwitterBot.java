@@ -348,10 +348,6 @@ public class TwitterBot {
                 }
             }
             
-            // bot1.freeMyArea();
-            // bot1.bookArea();
-            // bot1.doneArea(12);
-            // bot1.freeArea(12);
          } catch (JEAccessDeniedException e) {
              log.info("access denied");
          } catch (JEConflictException e) {

@@ -1,5 +1,6 @@
 package com.livejournal.karino2.subtitle2;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.ConcurrentModificationException;
@@ -34,6 +35,12 @@ public class SubtitleServer {
         return service.queryAsJEDocList(qReq);
     }
     
+    public List<JEDoc> getRawAreaMapList() throws JEAccessDeniedException {
+        QueryRequest qReq = createQueryRequest();        
+        qReq.setDocType("areaMap");
+        return service.queryAsJEDocList(qReq);        
+    }
+    
     public JEDoc getRawAreaMap(String srtId) throws JEAccessDeniedException {
         QueryRequest qReq = createQueryRequest();
         
@@ -58,6 +65,14 @@ public class SubtitleServer {
         return new AreaMap(getRawAreaMap(srtId));
     }
     
+    public List<AreaMap> getAreaMapList() throws JEAccessDeniedException {
+        ArrayList<AreaMap> list = new ArrayList<AreaMap>();
+        List<JEDoc> rows = getRawAreaMapList();
+        for(JEDoc row : rows) {
+            list.add(new AreaMap(row));
+        }
+        return list;
+    }
     
     public static void sort(List<JEDoc> jsonTexts) {
         Collections.sort(jsonTexts, new Comparator<JEDoc>() {
