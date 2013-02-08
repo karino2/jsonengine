@@ -35,7 +35,7 @@ import com.jsonengine.common.JEConflictException;
 public class TwitterBot {
     
     String accountPrefix = "@SubCourBot";
-    String account = "bot1";
+    String account;
     Pattern textIdPat;
     Pattern replyHeaderPat;
     
@@ -43,8 +43,9 @@ public class TwitterBot {
 
     Twitter twitter;
     Subtitle subtitle;
-    public TwitterBot(Twitter twit) {
+    public TwitterBot(Twitter twit, String name) {
         twitter = twit;
+        account = name;
         textIdPat = Pattern.compile("^([0-9][0-9]*):");
         replyHeaderPat = Pattern.compile("^@[0-9a-zA-Z]* (.*)$");
         subtitle = new Subtitle(account);
@@ -380,14 +381,20 @@ public class TwitterBot {
     }
     
     
+    public static TwitterBot createBot(String botName) {
+        Twitter twitter = createTwitterInstance(botName);
+        return new TwitterBot(twitter, botName);
+    }
+    
     // twitter instance creation.
     
-    public static Twitter createTwitterInstance() {
+    private static Twitter createTwitterInstance(String botName) {
+        
         ResourceBundle bundle = ResourceBundle.getBundle("com.livejournal.karino2.subtitle2.account");
-        final String CONSUMER_KEY = (String) bundle.getObject("bot1.consumerkey");
-        final String CONSUMER_SECRET = (String) bundle.getObject("bot1.consumersecret");
-        final String ACCESS_TOKEN = (String) bundle.getObject("bot1.accesstoken");
-        final String ACCESS_SECRET = (String) bundle.getObject("bot1.accesssecret");
+        final String CONSUMER_KEY = (String) bundle.getObject(botName + ".consumerkey");
+        final String CONSUMER_SECRET = (String) bundle.getObject(botName +".consumersecret");
+        final String ACCESS_TOKEN = (String) bundle.getObject(botName +".accesstoken");
+        final String ACCESS_SECRET = (String) bundle.getObject(botName +".accesssecret");
         
         ConfigurationBuilder cb = new ConfigurationBuilder();
         cb

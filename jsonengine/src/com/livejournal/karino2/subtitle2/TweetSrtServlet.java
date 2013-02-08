@@ -30,11 +30,9 @@ public class TweetSrtServlet implements Servlet {
         // TODO Auto-generated method stub
         return null;
     }
-    Twitter twitter;
 
     public void init(ServletConfig sc) throws ServletException {
         config = sc;
-        twitter  = TwitterBot.createTwitterInstance();
     }
  
 
@@ -43,7 +41,7 @@ public class TweetSrtServlet implements Servlet {
             throws ServletException, IOException {
         HttpServletRequest httpReq = (HttpServletRequest) req;
         
-        TwitterBot bot1 = new TwitterBot(twitter);
+        TwitterBot bot1 = TwitterBot.createBot("bot1");
 
         String cmd = httpReq.getParameter("cmd");
         if(cmd.contains("tweets")) {     
@@ -64,24 +62,6 @@ public class TweetSrtServlet implements Servlet {
         writer.print("done");
         writer.flush();
         writer.close();
-        // testTweet(resp);
     }
     
-
-    public void testTweet(ServletResponse resp) throws IOException {
-        resp.setContentType("text/plain");
-        PrintWriter writer = resp.getWriter();
-        Date dt = new Date();
-        try {
-            twitter.updateStatus("from servelet: " + dt.toString());
-        } catch (TwitterException e) {
-            // writer.print("exception: " + e.getMessage());
-            writer.print("exception!");
-            e.printStackTrace();
-        }        
-        writer.print("done");
-        writer.flush();
-        writer.close();
-    }
-
 }
