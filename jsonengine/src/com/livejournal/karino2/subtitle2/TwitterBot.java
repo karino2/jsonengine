@@ -246,21 +246,7 @@ public class TwitterBot {
                 FilterOperator.EQUAL.of("botName", account)
                 ));
         query.addSort("postDate", SortDirection.DESCENDING);
-        if(isMatch(service, query))
-            return true;
-
-        
-        
-        // transition code. we'll remove later.
-        Query query2 = new Query("HandledPost");
-        query2.setFilter(
-            CompositeFilterOperator.and(
-                FilterOperator.EQUAL.of("postUser", reply.getUser().getScreenName()),
-                FilterOperator.EQUAL.of("postText", reply.getText()),
-                FilterOperator.EQUAL.of("botName", account)
-                ));
-        query2.addSort("postDate", SortDirection.DESCENDING);
-        return isMatch(service, query2);        
+        return isMatch(service, query);
     }
 
 
