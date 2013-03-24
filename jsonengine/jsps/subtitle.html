@@ -107,7 +107,9 @@ function ajaxPost(url, param, onSuccess, postType){
    if(isLocal()) {
 	   return dummyPost(url, param, onSuccess, postType);
    } else {
-	   return $.post(url, param, onSuccess, postType);
+	   var ajx = $.post(url, param, onSuccess, postType);
+	   ajx.fail(function() {alert("conflict or error"); });
+	   return ajx;
    }
 }
 
@@ -267,10 +269,10 @@ function onJump() {
 	updateAreaMapAndSetupAreaAndTexts();
 }
 
-function submitText(docId, targetText, onAfter) {
+function submitText(docId, updatedAt, targetText, onAfter) {
 	var obj = {target: targetText, _docId: docId};
 	notifyStatus("submitting...", STATUS_STICK);
-	var jsonparam = { _doc: JSON.stringify(obj) };	
+	var jsonparam = { _doc: JSON.stringify(obj) , _checkUpdatesAfter: updatedAt};	
 
 	ajaxPost("/_je/text", jsonparam, function (result){
 		onAfter();
@@ -316,6 +318,7 @@ function onTextsComming(result) {
 	for(var i = 0; i <texts.length; i++){
 		var div = $('<div/>').addClass("row");
 		div.attr("_docId", texts[i]._docId);
+		div.attr("_updatedAt", texts[i]._updatedAt);
 		var targetTextArea = $('<textarea />').addClass("target").val(texts[i].target).attr("_server", texts[i].target);
 		if(isOutsideArea(texts[i])){
 			 targetTextArea.attr("disabled", "disabled");
@@ -328,7 +331,7 @@ function onTextsComming(result) {
 			var par =$(this).parent().parent();
 			var targetTextArea = par.find(".target");
 			var newVal =targetTextArea.val();
-			submitText(par.attr("_docId"), par.find(".target").val(), function() {targetTextArea.attr("_server", newVal); targetTextArea.removeClass("dirty"); });
+			submitText(par.attr("_docId"), par.attr("_updatedAt"), par.find(".target").val(), function() {targetTextArea.attr("_server", newVal); targetTextArea.removeClass("dirty"); });
 		});
 		div.append(original);
 		div.append(target);
