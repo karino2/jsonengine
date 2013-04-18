@@ -59,8 +59,8 @@ function ajaxGeneral(param) {
        <div>title: <input type="text" name="title"><br>
             url: <input type="text" name="url">
        </div>
-       <div><textarea name="content" rows="40" cols="100"></textarea></div>
        <div><input type="submit" value="ポスト!"></div>
+       <div><textarea name="content" rows="40" cols="100"></textarea></div>
     </form>
   </div>
 </body>
