@@ -45,6 +45,11 @@ public class UploadServlet extends HttpServlet {
 
             int textId = 0;
             String line = br.readLine();
+            
+            // skip empty.
+            while(line.equals("")) {
+                line = br.readLine();
+            }
             while(line != null)
             {
                 String header = "";
