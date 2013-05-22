@@ -269,6 +269,11 @@ function onJump() {
 	updateAreaMapAndSetupAreaAndTexts();
 }
 
+function onReload() {
+	notifyStatus("network...", STATUS_STICK);
+	loadCurrentAreaMap();
+}
+
 function submitText(docId, updatedAt, targetText, onAfter) {
 	var obj = {target: targetText, _docId: docId};
 	notifyStatus("submitting...", STATUS_STICK);
@@ -314,7 +319,7 @@ function onTextsComming(result) {
 	var bldr = [];
 	var holder = $('#subtitleHolder');
 	holder.empty();
-	holder.append($('<ul class="pager"><li class="next"><a id="btnJump" href="javascript:void(0)" disabled onclick="onJump()">別の場所を翻訳 &rarr;</a></li></ul>'));
+	holder.append($('<ul class="pager"><li class="next"><a id="btnJump" href="javascript:void(0)" disabled onclick="onJump()">別の場所を翻訳 &rarr;</a></li><li class="reload"><a id="btnReload" href="javascript:void(0)" disabled onclick="onReload()">再読込</a></li></ul>'));
 	for(var i = 0; i <texts.length; i++){
 		var div = $('<div/>').addClass("row");
 		div.attr("_docId", texts[i]._docId);
@@ -349,6 +354,15 @@ function updateAreaMapAndSetupAreaAndTexts() {
 	 });
 }
 
+function loadCurrentAreaMap() {
+	debugLog("retrieve texts");
+	var region = areaIndexToRegionWithHeaderFooter(g_areaIndex);
+	ajaxGet("/_je/text?cond=textId.ge." + region.begin +"&cond=textId.le."+ region.end, function (result) {
+		onTextsComming(result);
+		notifyStatus("done", STATUS_TIMED);
+	});
+}
+
 function setupAreaAndTexts() {
 	var id =findEmptyIndex(g_areaIndex);	
 	if(id == -1) {
@@ -360,13 +374,7 @@ function setupAreaAndTexts() {
 	g_areaIndex = id;
 	enableAreaRelatedButton(true);
 
-	debugLog("retrieve texts");
-	var region = areaIndexToRegionWithHeaderFooter(g_areaIndex);
-	ajaxGet("/_je/text?cond=textId.ge." + region.begin +"&cond=textId.le."+ region.end, function (result) {
-		onTextsComming(result);
-		notifyStatus("done", STATUS_TIMED);
-	});
-
+	loadCurrentAreaMap();
 }
 
 function findEmptyIndex(avoidId){
@@ -494,9 +502,11 @@ function enableAreaRelatedButton(isEnabled){
   if(isEnabled){
     $("#btnReleaseArea").removeAttr("disabled");
 	$("#btnJump").removeAttr("disabled");
+	$("#btnReload").removeAttr("disabled");
   } else {
     $("#btnReleaseArea").attr("disabled", true);
 	$("#btnJump").attr("disabled", true);
+	$("#btnReload").attr("disabled", true);
   }
 }
 
