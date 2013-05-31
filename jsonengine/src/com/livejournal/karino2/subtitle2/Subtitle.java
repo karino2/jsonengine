@@ -289,7 +289,12 @@ public class Subtitle {
     }
 
     private void deleteAreaMap(DatastoreService datastore, Transaction tx, String srtId2) throws JEAccessDeniedException, JEConflictException {
-        AreaMap map = server.getAreaMap(srtId2);
-        datastore.delete(tx, map.getJEDoc().getKey());        
+        try {
+            AreaMap map = server.getAreaMap(srtId2);
+            datastore.delete(tx, map.getJEDoc().getKey());                    
+        } catch(IndexOutOfBoundsException e)
+        {
+            // no areamap, corrupt data. just ignore.
+        }
     }
 }
