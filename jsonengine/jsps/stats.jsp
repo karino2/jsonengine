@@ -21,8 +21,7 @@ var g_user = "<%= user.getEmail() %>";
 	********* below here is the same as jsp version. ***********
 	************************************************************
 -->
-
-<link href="http://twitter.github.com/bootstrap/assets/css/bootstrap.css" rel="stylesheet">
+<link href="http://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" rel="stylesheet">
 <style>
 body {
   padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
@@ -287,28 +286,33 @@ function btnStartEnable(isEnable) {
 </head>
 
 <body>
-<div class="navbar navbar-inverse navbar-fixed-top">
-  <div class="navbar-inner">
-    <div class="container">
-      <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-      </a>
-      <div class="nav-collapse collapse">
-        <ul class="nav">
+<div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="#">Project name</a>
+        </div>
+        <div class="collapse navbar-collapse">
+          <ul class="nav navbar-nav">
 		  <li><a href="subtitle.jsp">Home</a></li>
           <li class="active"><a href="#">Stats</a></li>
           <li><a href="notice.html">Notice</a></li>
-        </ul>
-      </div><!--/.nav-collapse -->
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
     </div>
-  </div>
-</div>
+
+
+
 <div class="status label label-info">status</div>
 <div class="container">
   <div class="input-append">
-    <select class="span5" id="srtList"></select>
+    <select class="col-md-5" id="srtList"></select>
     <input id="btnSrtChoose" class="btn" type="button" value="統計を計算" disabled onclick="onCalcStatsStart()">
   </div>
   <div id="resultDiv">
