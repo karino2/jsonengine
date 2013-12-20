@@ -80,7 +80,7 @@ function onGenerateLink() {
 function onDeleteSrt() {
 	var srtId = $('#srtList option:selected')[0].value;
 	btnStartEnable(false);
-	ajaxGet('/admin/delete?srtId='+srtId, function() {btnStartEnable(true); alert("success!"); }, function() {btnStartEnable(true); alert("error!"); });
+	ajaxGet('/admin/delete?srtId='+srtId, function() {btnStartEnable(true); locaion.href="/_admin/index.html"; }, function() {btnStartEnable(true); alert("error!"); });
 }
 
 getSrts();
