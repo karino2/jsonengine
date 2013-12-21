@@ -1,0 +1,5 @@
+<backends>
+  <backend name="upload">
+    <class>B1</class>
+  </backend>
+</backends>
