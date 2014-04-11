@@ -12,6 +12,6 @@
   <sessions-enabled>false</sessions-enabled>
   <admin-console>
     <page name='jsonengine Admin' url='/_admin/'/>
-    <page name='jsonengine BBS Sample' url='/samples/bbs.html'/>
+    <page name='TobinQ Codes Admin ' url='/_admin/codes.jsp'/>
   </admin-console>
 </appengine-web-app>
