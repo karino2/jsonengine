@@ -14,9 +14,16 @@ function dummyGet(url, params, onSuccess){
 
 function dummyPost(url, params, onSuccess, postType){
 	alert("url: " +url + " params" + JSON.stringify(params));
-	window.setTimeout(function() {onSuccess(); }, 100);
+	window.setTimeout(function() {onSuccess({_docId: "dummydocid"}); }, 100);
 }
 
+function dummyAjax(param) {
+	if(param.async == false) {
+		param.success();
+	} else {
+		setTimeout(function(){ param.success(); }, 100);
+	}
+}
 
 </script>
 <script src="testdata/testdata.js" type="text/javascript"></script>
@@ -52,6 +59,13 @@ function ajaxGet(url, params, onSuccess){
 	}
 }
 
+function ajaxGeneral(param) {
+	if(isLocal()) {
+		dummyAjax(param);
+	} else {
+		$.ajax(param);
+	}
+}
 
 $(function() {
   query();
@@ -74,6 +88,12 @@ function postNewScript() {
   }, "text");
 }
 
+function updateOneScript(docId, newObj){
+	ajaxPost("/_je/tobinqscripts/"+docId, newObj, function(result) {
+		query();
+	}, "text");
+}
+
 // get all posts and list them
 function query() {
   
@@ -87,10 +107,31 @@ function query() {
     for (i = 0; i < result.length; i++) {
 	  var div = $("<div/>");
 	  div.attr("_docId", result[i]._docId);
-	  div.attr("_updatedAt", result[i]._updatedAt);	  
+	  div.attr("_updatedAt", result[i]._updatedAt);
 	  var titleElem = $("<input/>").attr({ type: 'text', size: 30}).addClass("title").val(result[i].title);
 	  var descriptionElem =$("<textarea/>").attr({cols: 40, rows:4}).addClass("description").val(result[i]._description);
 	  var scriptElem =$("<textarea/>").attr({cols: 40, rows:4}).addClass("script").val(result[i]._script);
+	  
+	  
+	  var imgHolderElem = $("<span/>").css('display', 'inline-block').addClass("imgHolder").width(100).val("no image");
+	  var fileElem = $("<input/>").attr({type: "file"}).addClass("file");
+	  
+	  
+	  if(result[i].graphId != undefined){
+		  div.attr("_graphId", result[i].graphId);
+		  
+		  ajaxGeneral({
+			  type: 'GET',
+			  url:"/_je/graphs/"+ result[i].graphId,
+			  data: {limit: 100},
+			  holder: imgHolderElem,
+			  success: function(result) {
+					  var imgElem = $("<img />").attr({src: "data:image/png;base64,"+ result._encodedData, width: 100, height: 100});
+					  this.holder.html("").append(imgElem);
+				  }
+	         });
+		}
+	  
 	  var editButton = $("<input/>").attr({type: "button"}).addClass("edit").val("Edit").click(function() {
 			var par =$(this).parent();
 			debElement =par;
@@ -99,25 +140,72 @@ function query() {
 			var script = par.find(".script").val();
 			var docId = par.attr("_docId");
 			var updatedAt = par.attr("_updatedAt");
-			disableSubButtons(par, true);
-			ajaxPost("/_je/tobinqscripts/"+docId, {title: title, _description: description, _script: script, _checkUpdatesAfter: updatedAt}, function(result) {
-				query();
-				}, "text");
+			var files =par.find(".file")[0].files;
 
+			var oldGraphId = par.attr("_graphId");
+			
+			disableSubButtons(par, true);
+			
+			if ( files.length == 1 ) {
+				var file = files[0];
+				var fileReader = new FileReader();
+				fileReader.readAsDataURL( file );
+				fileReader.onload = function( event ) {
+					base64data = this.result.split(',')[1];
+					
+					function afterDeleteImage() {
+						ajaxPost("/_je/graphs", {_encodedData: base64data}, function(result) {
+							
+							updateOneScript(docId, 
+								{title: title, _description: description, _script: script, graphId: result._docId, _checkUpdatesAfter: updatedAt});
+
+						});
+					}
+					
+					if(oldGraphId != undefined) {
+						ajaxPost("/_je/graphs/"+oldGraphId+"?_method=delete", {}, function (result){
+							afterDeleteImage();
+						}, "text");
+					} else {
+						afterDeleteImage();
+					}
+					
+
+					
+				};
+				return;
+			}
+			
+			updateOneScript(docId, {title: title, _description: description, _script: script, _checkUpdatesAfter: updatedAt});
 		});
 	  var deleteButton = $("<input/>").attr({type:"button"}).addClass("delete").val("Delete").click(function(){
 			var par =$(this).parent();
 			var docId = par.attr("_docId");
 			var updatedAt = par.attr("_updatedAt");
+
+			var oldGraphId = par.attr("_graphId");
 		    disableSubButtons(par, true);
-			ajaxPost("/_je/tobinqscripts/"+docId+"?_method=delete", {_checkUpdatesAfter: updatedAt}, function (result){	
-				query();
+			
+			function deleteScriptOne(){
+				ajaxPost("/_je/tobinqscripts/"+docId+"?_method=delete", {_checkUpdatesAfter: updatedAt}, function (result){	
+					query();
 				  }, "text");
+			}
+			
+			if(oldGraphId != undefined) {
+				ajaxPost("/_je/graphs/"+oldGraphId+"?_method=delete", {}, function (result){
+					deleteScriptOne();
+				}, "text");
+			}
+			
+			deleteScriptOne();
 		});
 		
 		div.append(titleElem);
 		div.append(descriptionElem);
 		div.append(scriptElem);
+		div.append(imgHolderElem);
+		div.append(fileElem);
 		div.append(editButton);
 		div.append(deleteButton);
 	  
