@@ -5,10 +5,7 @@
 
 <%@ page import="java.util.List" %>
 <%@ page import="java.lang.StringBuffer" %>
-<%@ page import="com.jsonengine.service.query.QueryService" %>
-<%@ page import="com.jsonengine.service.query.QueryRequest" %>
 <%@ page import="com.jsonengine.model.JEDoc" %>
-<%@ page import="com.jsonengine.service.query.QueryFilter" %>
 
 <%@ page import="com.jsonengine.service.crud.CRUDRequest" %>
 <%@ page import="com.jsonengine.service.crud.CRUDService" %>
@@ -53,12 +50,6 @@ String id = request.getParameter("id");
 
 CRUDRequest jeReq = new CRUDRequest();
 CRUDService service = new CRUDService();
-/*
-QueryService service = new QueryService();
-QueryRequest qReq = new QueryRequest();
-qReq.setDocType("tobinqscripts");
-QueryFilter.addCondFilter(qReq, "_docId", "eq", id);
-*/
 jeReq.setDocType("tobinqscripts");
 jeReq.setDocId(id);
 
@@ -75,7 +66,6 @@ JEDoc doc = getJEDoc(service, jeReq);
 boolean error = doc ==null;
 
 if(!error){
-	// JEDoc doc = res.get(0);
 
 	title = (String)doc.getDocValues().get("title");
 	graphId = (String)doc.getDocValues().get("graphId");
@@ -87,24 +77,11 @@ if(!error){
 		graphReq.setDocType("graphs");
 		graphReq.setDocId(graphId);
 
-		/*
-		QueryRequest graphReq = new QueryRequest();
-		graphReq.setDocType("graphs");
-		// graphReq.setDocId(graphId);
-		QueryFilter.addCondFilter(graphReq, "_docId", "eq", graphId);
-		*/
 	
-		// List<JEDoc> graphReses = service.queryAsJEDocList(qReq);
 		JEDoc graphDoc = getJEDoc(service, graphReq);
 		if(graphDoc != null) {
 				baseEncodedData = "data:image/png;base64," + (String)graphDoc.getDocValues().get("_encodedData");
 		}
-		/*
-		if(!graphReses.isEmpty()) {
-				JEDoc graphDoc = graphReses.get(0);
-				baseEncodedData = "data:image/png;base64," + (String)graphDoc.getDocValues().get("_encodedData");
-		}
-		*/
 	}
 }	
 
