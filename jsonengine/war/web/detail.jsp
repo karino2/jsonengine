@@ -40,7 +40,9 @@ JEDoc getJEDoc(CRUDService serv, CRUDRequest cr) {
         throw new RuntimeException(e);
      } catch (JENotFoundException e) {
 	 	return null;
-     }
+     } catch (NullPointerException e){
+	 	return null;
+	}
 
 }
 
