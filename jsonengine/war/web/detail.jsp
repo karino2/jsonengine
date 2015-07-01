@@ -20,10 +20,9 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<title>統計グラフ!</title>
 <%!
 String htmlEscape(String body){
-	return body.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
+	return body.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;");
 }
 String formatBody(String body) {
 	return htmlEscape(body).replace("\n", "<br>");
@@ -61,7 +60,7 @@ String title = "チャートが見つかりませんでした。";
 String graphId = "";
 String description = "";
 String graphUrl = "";
-
+String descriptionForEmbed = "";
 
 JEDoc doc = getJEDoc(service, jeReq);
 
@@ -69,9 +68,15 @@ boolean error = doc ==null;
 
 if(!error){
 
-	title = (String)doc.getDocValues().get("title");
+	title = htmlEscape((String)doc.getDocValues().get("title"));
 	graphId = (String)doc.getDocValues().get("graphId");
-	description = (String)doc.getDocValues().get("_description");
+	String orgDescription = (String)doc.getDocValues().get("_description");
+	description = formatBody(orgDescription);
+	if(orgDescription.length() > 250) {
+		descriptionForEmbed = htmlEscape(orgDescription.substring(0, 240));
+	} else {
+		descriptionForEmbed = htmlEscape(orgDescription);
+	}
 
 
 	if(graphId != null && !graphId.equals("")) {
@@ -81,6 +86,16 @@ if(!error){
 
 
 %>
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:site" content="@karino2012" />
+<meta name="twitter:title" content="<%= title %>" />
+<meta name="twitter:description" content="<%= descriptionForEmbed %>" />
+<meta name="twitter:image" content="<%= "http://tobinqscriptbackend.appspot.com" + graphUrl %>" />
+<meta property="og:title" content="<%= title %>" />
+<meta property="og:type" content="article" />
+<meta property="og:image" content="<%= "http://tobinqscriptbackend.appspot.com" + graphUrl %>" />
+<meta property="og:description" content="<%= descriptionForEmbed %>" />
+<title>統計グラフ!</title>
 
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.1/jquery.min.js" type="text/javascript"></script>
 <style type="text/css">
@@ -96,14 +111,14 @@ img.chartImgClass {
 </head>
 
 <body>
-<h1><%= htmlEscape(title) %></h1>
+<h1><%= title %></h1>
 <hr>
 <% if(error) { %>
 チャートが見つかりませんでした。指定されたチャートは削除されたか、URLが間違っています。
 <% } else { %>
 <img class="chartImgClass" id="chartImg" src="<%= graphUrl%>">
 <div id="descriptionDiv">
-<%= this.formatBody(description) %>
+<%= description %>
 </div>
 <% } %>
 </body>
