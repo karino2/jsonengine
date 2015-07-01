@@ -108,17 +108,8 @@ function query() {
 	  
 	  if(result[i].graphId != undefined){
 		  div.attr("_graphId", result[i].graphId);
-		  
-		  ajaxGeneral({
-			  type: 'GET',
-			  url:"/_je/graphs/"+ result[i].graphId,
-			  data: {limit: 100},
-			  holder: imgHolderElem,
-			  success: function(result) {
-					  var imgElem = $("<img />").attr({src: "data:image/png;base64,"+ result._encodedData, width: 100, height: 100});
-					  this.holder.html("").append(imgElem);
-				  }
-	         });
+		  var imgElem = $("<img />").attr({src: "/action/displaygraph?id=" + result[i].graphId, width: 100, height: 100});
+		  imgHolderElem.html("").append(imgElem);
 		}
 	  
 	  var editButton = $("<input/>").attr({type: "button"}).addClass("edit").val("Edit").click(function() {

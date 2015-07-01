@@ -60,7 +60,7 @@ jeReq.setDocId(id);
 String title = "チャートが見つかりませんでした。";
 String graphId = "";
 String description = "";
-String baseEncodedData = "";
+String graphUrl = "";
 
 
 JEDoc doc = getJEDoc(service, jeReq);
@@ -75,15 +75,7 @@ if(!error){
 
 
 	if(graphId != null && !graphId.equals("")) {
-		CRUDRequest graphReq = new CRUDRequest();
-		graphReq.setDocType("graphs");
-		graphReq.setDocId(graphId);
-
-	
-		JEDoc graphDoc = getJEDoc(service, graphReq);
-		if(graphDoc != null) {
-				baseEncodedData = "data:image/png;base64," + (String)graphDoc.getDocValues().get("_encodedData");
-		}
+		graphUrl = "/action/displaygraph?id=" + graphId;
 	}
 }	
 
@@ -109,7 +101,7 @@ img.chartImgClass {
 <% if(error) { %>
 チャートが見つかりませんでした。指定されたチャートは削除されたか、URLが間違っています。
 <% } else { %>
-<img class="chartImgClass" id="chartImg" src="<%= baseEncodedData%>">
+<img class="chartImgClass" id="chartImg" src="<%= graphUrl%>">
 <div id="descriptionDiv">
 <%= this.formatBody(description) %>
 </div>
