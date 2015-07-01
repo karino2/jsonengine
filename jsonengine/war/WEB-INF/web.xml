@@ -85,5 +85,16 @@
             <role-name>admin</role-name>
         </auth-constraint>
     </security-constraint>
+	
+	<!-- tobinqscriptbackend servlet -->
+	<servlet>
+    	<servlet-name>displaygraph</servlet-name>
+    	<servlet-class>com.livejournal.karino2.tobinqscript.ImageServlet</servlet-class>
+  	</servlet>
+    <servlet-mapping>
+      <servlet-name>displaygraph</servlet-name>
+      <url-pattern>/action/displaygraph</url-pattern>
+    </servlet-mapping>
+
 
 </web-app>
