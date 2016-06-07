@@ -1,5 +1,6 @@
 <project name="jsonengine" default="gen-controller" basedir=".">
     <property file="build.properties" />
+    <property name="gae.dir" value="D:/mounted/appengine-java-sdk-1.9.38" />
 
     <path id="classpath">
         <fileset dir="war/WEB-INF/classes">
@@ -11,6 +12,12 @@
         <fileset dir="lib">
             <include name="**/*.jar" />
         </fileset>
+        <fileset dir="${gae.dir}/lib">
+            <include name="*.jar" />
+            <include name="shared/**/*.jar" />
+            <include name="agent/*.jar" />
+            <include name="impl/**/*.jar" />
+	</fileset>
     </path>
 
     <taskdef name="gen-model" classname="org.slim3.gen.task.GenModelTask" classpathref="classpath"/>
@@ -47,6 +54,16 @@
         <input message="Input a GWT service name. (ex.  FooService -> root.client.service.FooService,  bar.FooService -> root.client.service.bar.FooService)" addproperty="serviceDefinition"/>
         <gen-gwt-service srcdir="${srcDir}" testdir="${testDir}" wardir="${warDir}" serviceDefinition="${serviceDefinition}" serviceClassNameProperty="serviceClassName"/>
         <gen-gwt-service-impl srcdir="${srcDir}" testdir="${testDir}" wardir="${warDir}" serviceDefinition="${serviceDefinition}" serviceClassName="${serviceClassName}"/>
+    </target>
+
+    <target name="compile">
+	 <javac srcdir="src" target="1.7" source="1.7" destdir="war/WEB-INF/classes">
+            <classpath refid="classpath"/>
+        </javac>
+    </target>
+    <target name="clean">
+        <delete dir="war/WEB-INF/classes" />
+        <mkdir dir="war/WEB-INF/classes" />
     </target>
     
     <target name="copy">
