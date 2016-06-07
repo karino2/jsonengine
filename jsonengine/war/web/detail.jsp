@@ -106,6 +106,9 @@ img.chartImgClass {
   width: 400px;
   height: 400px;
 }
+div.footer {
+  float: left;
+}
 </style>
 
 </head>
@@ -121,6 +124,13 @@ img.chartImgClass {
 <%= description %>
 </div>
 <% } %>
+<div class="footer">
+<hr>
+<ul>
+<li><a href="/index.html">このサイトについて</a>
+<li>「スマホに統計のグラフが降ってくる！」は下のバナーから<br><a href='https://play.google.com/store/apps/details?id=com.livejournal.karino2.tobinq.app&utm_source=global_co&utm_medium=prtnr&utm_content=Mar2515&utm_campaign=PartBadge&pcampaignid=MKT-Other-global-all-co-prtnr-py-PartBadge-Mar2515-1'><img alt='Get it on Google Play' src='https://play.google.com/intl/en_us/badges/images/generic/en_badge_web_generic.png' height="80"/></a>
+</ul>
+</div>
 </body>
 
 </html>
