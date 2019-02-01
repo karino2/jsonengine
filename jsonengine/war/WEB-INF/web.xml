@@ -69,11 +69,6 @@
         <url-pattern>/ktrwjr/ktrwjr/ktrwjr.s3gwt</url-pattern>
     </servlet-mapping>
 
-    <servlet-mapping>
-        <servlet-name>KtrWjrServiceServlet</servlet-name>
-        <url-pattern>/ktrwjr/ktrwjr/ktrwjr.s3gwt</url-pattern>
-    </servlet-mapping>
-
     <security-constraint>
         <web-resource-collection>
             <url-pattern>/slim3/gtx</url-pattern>
